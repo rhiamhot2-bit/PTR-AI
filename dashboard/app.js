@@ -7,7 +7,7 @@ const commands = [
   { name: "!automation", purpose: "n8n workflow ideas, lead handling, order updates, and reports.", example: "!automation Create a Discord to Google Sheet order workflow." }
 ];
 
-const pageTitles = { home: "Home", designer: "AI Chat Designer", cad: "CAD Gallery", customers: "Customer CRM", orders: "Order Board", discord: "Discord Control", n8n: "n8n Connection", analytics: "Analytics", settings: "Settings" };
+const pageTitles = { home: "Home", designer: "AI Chat Designer", cad: "CAD Gallery", customers: "Customer CRM", orders: "Order Board", projects: "Saved Projects", discord: "Discord Control", n8n: "n8n Connection", analytics: "Analytics", settings: "Settings" };
 
 const cadItems = [
   { type: "💍 Ring", title: "UAE Emerald Bridal Ring", tags: "ring emerald UAE 18K rose gold", status: "CAD Brief Ready" },
@@ -50,6 +50,7 @@ function switchPage(pageName) {
   const selectedPage = document.getElementById(`${pageName}Page`);
   if (selectedPage) selectedPage.classList.add("active");
   pageTitle.textContent = pageTitles[pageName] || "PTR AI";
+  if (pageName === "projects") renderSavedProjects();
 }
 
 function loadWebhookUrl() {
@@ -71,16 +72,17 @@ function saveWebhookUrl() {
 }
 
 function getDesignerData() {
+  const get = id => document.getElementById(id)?.value || "";
   return {
-    jewelry_type: document.getElementById("jewelryType").value,
-    style: document.getElementById("style").value.trim(),
-    metal: document.getElementById("metal").value.trim(),
-    main_stone: document.getElementById("mainStone").value.trim(),
-    accent_stones: document.getElementById("accentStones").value.trim(),
-    target_market: document.getElementById("targetMarket").value.trim(),
-    budget_level: document.getElementById("budgetLevel").value,
-    output_type: document.getElementById("outputType").value,
-    notes: document.getElementById("notes").value.trim()
+    jewelry_type: get("jewelryType"),
+    style: get("style").trim(),
+    metal: get("metal").trim(),
+    main_stone: get("mainStone").trim(),
+    accent_stones: get("accentStones").trim(),
+    target_market: get("targetMarket").trim(),
+    budget_level: get("budgetLevel"),
+    output_type: get("outputType"),
+    notes: get("notes").trim()
   };
 }
 
@@ -90,7 +92,7 @@ function createDesignerPrompt() {
 }
 
 function buildDesignerPayload() {
-  return { command: "design", prompt: createDesignerPrompt(), business: "jewelry", source: "ptr_ai_dashboard_v4", mode: "ai_chat_designer", ai_designer: getDesignerData() };
+  return { command: "design", prompt: createDesignerPrompt(), business: "jewelry", source: "ptr_ai_dashboard_v5", mode: "ai_chat_designer", ai_designer: getDesignerData() };
 }
 
 function draftFromText(text, mode) {
@@ -162,15 +164,87 @@ function renderOrders() {
   box.innerHTML = Object.entries(orders).map(([stage, items]) => `<section class="kanban-column"><h3>${stage}</h3>${items.map(item => `<div class="order-card">${item}</div>`).join("")}</section>`).join("");
 }
 
-renderCommands(); renderCadGallery(); renderCustomers(); renderOrders(); loadWebhookUrl();
+function getSavedProjects() {
+  return JSON.parse(localStorage.getItem("PTR_AI_PROJECTS") || "[]");
+}
+
+function saveCurrentProject() {
+  const prompt = document.getElementById("chatPrompt")?.value.trim() || "Untitled jewelry project";
+  const output = outputBox?.textContent || "";
+  const projects = getSavedProjects();
+  const project = {
+    id: `PTR-${Date.now()}`,
+    title: prompt.slice(0, 60),
+    prompt,
+    output,
+    status: "Waiting CAD",
+    created_at: new Date().toLocaleString()
+  };
+  projects.unshift(project);
+  localStorage.setItem("PTR_AI_PROJECTS", JSON.stringify(projects));
+  renderSavedProjects();
+  switchPage("projects");
+}
+
+function renderSavedProjects() {
+  const box = document.getElementById("savedProjectsGrid");
+  if (!box) return;
+  const projects = getSavedProjects();
+  if (projects.length === 0) {
+    box.innerHTML = `<p class="muted">ยังไม่มี Project ที่บันทึก ลองไปที่ AI Chat Designer แล้วกด Save Project ครับ</p>`;
+    return;
+  }
+  box.innerHTML = projects.map(project => `<article class="customer-card"><h3>${project.title}</h3><p>${project.created_at}</p><strong>${project.status}</strong><span>${project.prompt}</span><em>${project.id}</em></article>`).join("");
+}
+
+function installV5UI() {
+  const nav = document.querySelector(".nav-menu");
+  const ordersButton = document.querySelector('[data-page="orders"]');
+  if (nav && !document.querySelector('[data-page="projects"]')) {
+    const button = document.createElement("button");
+    button.className = "nav-item";
+    button.dataset.page = "projects";
+    button.textContent = "🧠 Projects";
+    nav.insertBefore(button, ordersButton?.nextSibling || nav.children[4]);
+    button.addEventListener("click", () => switchPage("projects"));
+  }
+
+  const main = document.querySelector(".main-area");
+  if (main && !document.getElementById("projectsPage")) {
+    const section = document.createElement("section");
+    section.className = "page";
+    section.id = "projectsPage";
+    section.innerHTML = `<section class="panel"><h2>Saved Projects</h2><p class="muted">V5 Foundation: บันทึกโปรเจกต์ลง Browser Local Storage ก่อน ต่อไปค่อยต่อ Database / Google Drive / n8n</p><div class="customer-grid" id="savedProjectsGrid"></div></section>`;
+    main.appendChild(section);
+  }
+
+  const outputHeader = document.querySelector("#copyOutput")?.parentElement;
+  if (outputHeader && !document.getElementById("saveProject")) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "saveProject";
+    button.className = "secondary-button";
+    button.textContent = "Save Project";
+    outputHeader.appendChild(button);
+    button.addEventListener("click", saveCurrentProject);
+  }
+}
+
+renderCommands();
+renderCadGallery();
+renderCustomers();
+renderOrders();
+loadWebhookUrl();
+installV5UI();
+renderSavedProjects();
 
 document.querySelectorAll(".nav-item").forEach(button => button.addEventListener("click", () => switchPage(button.dataset.page)));
 document.querySelectorAll(".module-card").forEach(card => card.addEventListener("click", () => switchPage(card.dataset.jump)));
 document.querySelectorAll(".quick-output").forEach(button => button.addEventListener("click", () => setOutputType(button.dataset.output)));
 document.querySelectorAll(".chat-generate").forEach(button => button.addEventListener("click", () => generateChat(button.dataset.mode)));
-document.getElementById("cadSearch").addEventListener("input", event => renderCadGallery(event.target.value));
-document.getElementById("saveWebhook").addEventListener("click", saveWebhookUrl);
-document.getElementById("previewPayload").addEventListener("click", previewPayload);
-document.getElementById("generateLocal").addEventListener("click", generateLocalDraft);
-document.getElementById("copyOutput").addEventListener("click", copyOutput);
-document.getElementById("designerForm").addEventListener("submit", sendToN8n);
+document.getElementById("cadSearch")?.addEventListener("input", event => renderCadGallery(event.target.value));
+document.getElementById("saveWebhook")?.addEventListener("click", saveWebhookUrl);
+document.getElementById("previewPayload")?.addEventListener("click", previewPayload);
+document.getElementById("generateLocal")?.addEventListener("click", generateLocalDraft);
+document.getElementById("copyOutput")?.addEventListener("click", copyOutput);
+document.getElementById("designerForm")?.addEventListener("submit", sendToN8n);
