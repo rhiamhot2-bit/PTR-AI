@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PTR AI Dashboard V4</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="v4.css" />
 </head>
 <body>
   <div class="app-shell">
@@ -68,61 +69,19 @@
         <section class="panel">
           <div class="section-heading"><div><h2>AI Chat Designer</h2><p class="muted">พิมพ์ไอเดียเหมือนคุยกับ ChatGPT แล้วกดสร้างแบบ</p></div><span class="pill">Jewelry Brain V4</span></div>
           <div class="chat-grid">
-            <div class="chat-box" id="chatBox">
-              <div class="chat-message bot">สวัสดีครับ ผมคือ PTR AI Designer Pro ลองพิมพ์เช่น “แหวนมรกตหรูสำหรับเจ้าสาว UAE ทอง 18K Rose Gold”</div>
-            </div>
+            <div class="chat-box" id="chatBox"><div class="chat-message bot">สวัสดีครับ ผมคือ PTR AI Designer Pro ลองพิมพ์เช่น “แหวนมรกตหรูสำหรับเจ้าสาว UAE ทอง 18K Rose Gold”</div></div>
             <div class="chat-side">
-              <label class="field full">Describe your jewelry
-                <textarea id="chatPrompt" rows="7">Luxury emerald ring for UAE bride, 18K rose gold, oval emerald center, diamond halo, royal feeling</textarea>
-              </label>
-              <div class="button-row full">
-                <button type="button" class="chat-generate" data-mode="cad_brief">Generate CAD Brief</button>
-                <button type="button" class="chat-generate" data-mode="stone_map">Generate Stone Map</button>
-                <button type="button" class="chat-generate" data-mode="sales_story">Generate Story</button>
-                <button type="button" class="chat-generate" data-mode="veo_prompt">Generate Veo Prompt</button>
-              </div>
+              <label class="field full">Describe your jewelry<textarea id="chatPrompt" rows="7">Luxury emerald ring for UAE bride, 18K rose gold, oval emerald center, diamond halo, royal feeling</textarea></label>
+              <div class="button-row full"><button type="button" class="chat-generate" data-mode="cad_brief">Generate CAD Brief</button><button type="button" class="chat-generate" data-mode="stone_map">Generate Stone Map</button><button type="button" class="chat-generate" data-mode="sales_story">Generate Story</button><button type="button" class="chat-generate" data-mode="veo_prompt">Generate Veo Prompt</button></div>
             </div>
           </div>
         </section>
-
-        <section class="panel output-panel">
-          <div class="section-heading"><div><h2>AI Designer Form</h2><p class="muted">ฟอร์มเดิมยังใช้ได้สำหรับส่งเข้า n8n</p></div><button type="button" id="copyOutput" class="secondary-button">Copy Output</button></div>
-          <div class="quick-actions">
-            <button type="button" class="quick-output active" data-output="cad_brief">CAD Brief</button>
-            <button type="button" class="quick-output" data-output="stone_map">Stone Map</button>
-            <button type="button" class="quick-output" data-output="sales_story">Sales Story</button>
-            <button type="button" class="quick-output" data-output="sales_caption">Sales Caption</button>
-            <button type="button" class="quick-output" data-output="veo_prompt">Veo Prompt</button>
-            <button type="button" class="quick-output" data-output="rhino_steps">Rhino Steps</button>
-          </div>
-          <form id="designerForm" class="designer-form">
-            <label class="field">Jewelry Type<select id="jewelryType"><option value="ring">Ring / แหวน</option><option value="necklace">Necklace / สร้อยคอ</option><option value="bracelet">Bracelet / สร้อยข้อมือ</option><option value="earrings">Earrings / ต่างหู</option><option value="pendant">Pendant / จี้</option><option value="brooch">Brooch / เข็มกลัด</option><option value="full_set">Full Set / ครบเซ็ต</option></select></label>
-            <label class="field">Style<input id="style" value="luxury bridal UAE" /></label>
-            <label class="field">Metal<input id="metal" value="18K rose gold" /></label>
-            <label class="field">Main Stone<input id="mainStone" value="oval emerald" /></label>
-            <label class="field">Accent Stones<input id="accentStones" value="round diamonds" /></label>
-            <label class="field">Target Market<input id="targetMarket" value="premium Middle East customer" /></label>
-            <label class="field">Budget Level<select id="budgetLevel"><option value="high">High / ลูกค้าพรีเมียม</option><option value="medium">Medium / ระดับกลาง</option><option value="entry">Entry / เริ่มต้น</option></select></label>
-            <label class="field">Output Type<select id="outputType"><option value="cad_brief">CAD Brief</option><option value="design_concept">Design Concept</option><option value="stone_map">Stone Map</option><option value="sales_story">Sales Story</option><option value="sales_caption">Sales Caption</option><option value="veo_prompt">Veo Prompt</option><option value="rhino_steps">Rhino Steps</option></select></label>
-            <label class="field full">Notes<textarea id="notes" rows="3">hidden halo, comfortable daily wear, elegant royal feeling</textarea></label>
-            <div class="button-row full"><button type="button" id="previewPayload">Preview Payload</button><button type="button" id="generateLocal">Generate Local Draft</button><button type="submit">Send to n8n</button></div>
-          </form>
-          <pre id="outputBox">พร้อมรับคำสั่งจาก AI Designer Pro...</pre>
-        </section>
+        <section class="panel output-panel"><div class="section-heading"><div><h2>Designer Output</h2><p class="muted">ผลลัพธ์จะแสดงตรงนี้</p></div><button type="button" id="copyOutput" class="secondary-button">Copy Output</button></div><pre id="outputBox">พร้อมรับคำสั่งจาก AI Designer Pro...</pre></section>
       </section>
 
-      <section class="page" id="cadPage">
-        <section class="panel"><h2>CAD Gallery</h2><p class="muted">ตัวอย่างหน้าคลังไฟล์ 3D / Render / Stone Map</p><input id="cadSearch" placeholder="Search: ring, UAE, emerald, bracelet..." /><div class="gallery-grid" id="cadGallery"></div></section>
-      </section>
-
-      <section class="page" id="customersPage">
-        <section class="panel"><h2>Customer CRM</h2><p class="muted">ตัวอย่างข้อมูลลูกค้า พร้อมงบประมาณและสถานะงาน</p><div class="customer-grid" id="customerGrid"></div></section>
-      </section>
-
-      <section class="page" id="ordersPage">
-        <section class="panel"><h2>Order Board</h2><p class="muted">ตัวอย่างบอร์ดติดตามงานแบบ Kanban</p><div class="kanban-board" id="orderBoard"></div></section>
-      </section>
-
+      <section class="page" id="cadPage"><section class="panel"><h2>CAD Gallery</h2><p class="muted">ตัวอย่างหน้าคลังไฟล์ 3D / Render / Stone Map</p><input id="cadSearch" placeholder="Search: ring, UAE, emerald, bracelet..." /><div class="gallery-grid" id="cadGallery"></div></section></section>
+      <section class="page" id="customersPage"><section class="panel"><h2>Customer CRM</h2><p class="muted">ตัวอย่างข้อมูลลูกค้า พร้อมงบประมาณและสถานะงาน</p><div class="customer-grid" id="customerGrid"></div></section></section>
+      <section class="page" id="ordersPage"><section class="panel"><h2>Order Board</h2><p class="muted">ตัวอย่างบอร์ดติดตามงานแบบ Kanban</p><div class="kanban-board" id="orderBoard"></div></section></section>
       <section class="page" id="discordPage"><section class="panel placeholder-panel"><h2>Discord Control</h2><p>Bot Online, Last Command, Command Usage และ Logs จะอยู่ตรงนี้</p></section></section>
       <section class="page" id="n8nPage"><section class="panel"><h2>n8n Connection</h2><p class="muted">ใส่ Webhook URL เพื่อให้ Dashboard ส่งข้อมูลไปยัง n8n</p><label class="field full">n8n Webhook URL<input id="webhookUrl" type="url" placeholder="https://your-n8n-domain/webhook/ptr-ai-agent" /></label><button id="saveWebhook" class="secondary-button">Save Webhook URL</button></section></section>
       <section class="page" id="analyticsPage"><section class="panel placeholder-panel"><h2>Analytics</h2><p>Revenue, Orders, Customers, Top Designs และกราฟจะอยู่ตรงนี้</p></section></section>
