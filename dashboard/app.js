@@ -31,10 +31,24 @@ const commands = [
   }
 ];
 
+const pageTitles = {
+  home: "Home",
+  designer: "AI Designer",
+  cad: "CAD Library",
+  customers: "Customer Manager",
+  orders: "Orders",
+  discord: "Discord Control",
+  n8n: "n8n Connection",
+  analytics: "Analytics",
+  settings: "Settings"
+};
+
 const commandList = document.getElementById("commandList");
 const outputBox = document.getElementById("outputBox");
 const webhookUrlInput = document.getElementById("webhookUrl");
 const webhookStatus = document.getElementById("webhookStatus");
+const topWebhookStatus = document.getElementById("topWebhookStatus");
+const pageTitle = document.getElementById("pageTitle");
 
 function renderCommands() {
   commandList.innerHTML = commands.map(command => `
@@ -46,19 +60,45 @@ function renderCommands() {
   `).join("");
 }
 
+function switchPage(pageName) {
+  document.querySelectorAll(".nav-item").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === pageName);
+  });
+
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  const selectedPage = document.getElementById(`${pageName}Page`);
+  if (selectedPage) {
+    selectedPage.classList.add("active");
+  }
+
+  pageTitle.textContent = pageTitles[pageName] || "PTR AI";
+}
+
 function loadWebhookUrl() {
   const savedUrl = localStorage.getItem("PTR_AI_WEBHOOK_URL") || "";
   webhookUrlInput.value = savedUrl;
-  webhookStatus.textContent = savedUrl ? "Configured" : "Not connected";
+  updateWebhookStatus(savedUrl);
+}
+
+function updateWebhookStatus(url) {
+  const status = url ? "Configured" : "Not connected";
+  webhookStatus.textContent = status;
+  topWebhookStatus.textContent = url ? "n8n: Configured" : "n8n: Not connected";
 }
 
 function saveWebhookUrl() {
   const url = webhookUrlInput.value.trim();
   localStorage.setItem("PTR_AI_WEBHOOK_URL", url);
-  webhookStatus.textContent = url ? "Configured" : "Not connected";
-  outputBox.textContent = url
-    ? "บันทึก n8n Webhook URL แล้วครับ"
-    : "ยังไม่ได้ใส่ n8n Webhook URL";
+  updateWebhookStatus(url);
+
+  if (outputBox) {
+    outputBox.textContent = url
+      ? "บันทึก n8n Webhook URL แล้วครับ"
+      : "ยังไม่ได้ใส่ n8n Webhook URL";
+  }
 }
 
 function buildDesignerPayload() {
@@ -66,7 +106,7 @@ function buildDesignerPayload() {
     command: "design",
     prompt: createDesignerPrompt(),
     business: "jewelry",
-    source: "ptr_ai_dashboard",
+    source: "ptr_ai_dashboard_v2",
     mode: "ai_designer",
     ai_designer: {
       jewelry_type: document.getElementById("jewelryType").value,
@@ -94,7 +134,7 @@ function createDesignerPrompt() {
   const notes = document.getElementById("notes").value.trim();
 
   return [
-    "You are PTR AI Designer, a jewelry design specialist.",
+    "You are PTR AI Designer, a senior jewelry design specialist.",
     `Create a ${outputType} for a ${jewelryType}.`,
     `Style: ${style}`,
     `Metal: ${metal}`,
@@ -103,7 +143,7 @@ function createDesignerPrompt() {
     `Target market: ${targetMarket}`,
     `Budget level: ${budgetLevel}`,
     `Notes: ${notes}`,
-    "Return a clear jewelry concept with design details, CAD brief, stone map, and sales story when relevant."
+    "Return a clear jewelry concept with design details, CAD brief, stone map, production notes, and sales story when relevant."
   ].join("\n");
 }
 
@@ -115,6 +155,7 @@ async function sendToN8n(event) {
 
   if (!webhookUrl) {
     outputBox.textContent = "กรุณาใส่ n8n Webhook URL ก่อนส่งข้อมูลครับ";
+    switchPage("n8n");
     return;
   }
 
@@ -149,6 +190,10 @@ function previewPayload() {
 
 renderCommands();
 loadWebhookUrl();
+
+document.querySelectorAll(".nav-item").forEach(button => {
+  button.addEventListener("click", () => switchPage(button.dataset.page));
+});
 
 document.getElementById("saveWebhook").addEventListener("click", saveWebhookUrl);
 document.getElementById("previewPayload").addEventListener("click", previewPayload);
