@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PTR AI Dashboard V2</title>
+  <title>PTR AI Dashboard V3</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -32,8 +32,8 @@
       <div class="sidebar-footer">
         <span class="status-dot"></span>
         <div>
-          <strong>Dashboard V2</strong>
-          <small>Local development</small>
+          <strong>Dashboard V3</strong>
+          <small>AI Designer Pro</small>
         </div>
       </div>
     </aside>
@@ -54,7 +54,7 @@
         <div class="hero-card">
           <div>
             <p class="eyebrow">PTR AI Operating System</p>
-            <h2>Dashboard + AI Designer</h2>
+            <h2>Dashboard + AI Designer Pro</h2>
             <p class="hero-text">
               ศูนย์ควบคุม AI สำหรับธุรกิจจิวเวลรี่: ออกแบบงาน สร้างคอนเทนต์ วางแผนธุรกิจ
               ทำ Prompt วิดีโอ ช่วย Rhino/CAD และเชื่อม n8n Automation
@@ -62,9 +62,16 @@
           </div>
           <div class="hero-badge">
             <span class="status-dot"></span>
-            <strong>Ready for V2</strong>
-            <small>Sidebar platform layout</small>
+            <strong>Ready for V3</strong>
+            <small>AI Designer Pro layout</small>
           </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card"><span>AI Modules</span><strong>9</strong><small>Dashboard sections</small></div>
+          <div class="metric-card"><span>Commands</span><strong>6</strong><small>Discord commands</small></div>
+          <div class="metric-card"><span>Designer Outputs</span><strong>6</strong><small>Pro generation modes</small></div>
+          <div class="metric-card"><span>Version</span><strong>1.0</strong><small>PTR AI foundation</small></div>
         </div>
 
         <div class="dashboard-grid">
@@ -81,13 +88,30 @@
           <section class="panel">
             <h2>Next Build Plan</h2>
             <div class="timeline-list">
-              <div><strong>1</strong><span>AI Designer ส่งข้อมูลเข้า n8n</span></div>
+              <div><strong>1</strong><span>AI Designer Pro สร้าง CAD Brief / Stone Map / Story</span></div>
               <div><strong>2</strong><span>CAD Library เก็บไฟล์ 3D และรูป Render</span></div>
               <div><strong>3</strong><span>Customer + Orders สำหรับงานลูกค้า</span></div>
               <div><strong>4</strong><span>Analytics รายงานธุรกิจและยอดงาน</span></div>
             </div>
           </section>
         </div>
+
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <h2>Business Modules</h2>
+              <p class="muted">ภาพรวมระบบที่จะต่อยอดเป็น PTR AI Operating System</p>
+            </div>
+          </div>
+          <div class="module-grid">
+            <button class="module-card" data-jump="designer"><strong>💎 AI Designer Pro</strong><span>สร้างแบบ เครื่องประดับ CAD Brief Stone Map</span></button>
+            <button class="module-card" data-jump="cad"><strong>📚 CAD Library</strong><span>คลังไฟล์ Rhino MatrixGold STL Render</span></button>
+            <button class="module-card" data-jump="customers"><strong>👥 Customer CRM</strong><span>บันทึกลูกค้า งบประมาณ สไตล์ที่ชอบ</span></button>
+            <button class="module-card" data-jump="orders"><strong>📦 Orders</strong><span>ติดตามงาน CAD หล่อ ฝัง ขัด ส่งมอบ</span></button>
+            <button class="module-card" data-jump="discord"><strong>🤖 Discord Bot</strong><span>ควบคุมคำสั่งและดูการใช้งาน</span></button>
+            <button class="module-card" data-jump="n8n"><strong>🔄 n8n Workflow</strong><span>เชื่อมระบบ Automation</span></button>
+          </div>
+        </section>
 
         <section class="panel">
           <h2>Command Center</h2>
@@ -99,10 +123,19 @@
         <section class="panel designer-panel">
           <div class="section-heading">
             <div>
-              <h2>AI Designer Panel</h2>
-              <p class="muted">กรอกข้อมูลแบบจิวเวลรี่ แล้วส่งเข้า n8n หรือใช้ดู Prompt ก่อน</p>
+              <h2>AI Designer Pro</h2>
+              <p class="muted">กรอกข้อมูลครั้งเดียว แล้วเลือกสร้าง CAD Brief, Stone Map, Sales Story, Caption หรือ Veo Prompt</p>
             </div>
-            <span class="pill">Jewelry Brain</span>
+            <span class="pill">Jewelry Brain Pro</span>
+          </div>
+
+          <div class="quick-actions">
+            <button type="button" class="quick-output active" data-output="cad_brief">CAD Brief</button>
+            <button type="button" class="quick-output" data-output="stone_map">Stone Map</button>
+            <button type="button" class="quick-output" data-output="sales_story">Sales Story</button>
+            <button type="button" class="quick-output" data-output="sales_caption">Sales Caption</button>
+            <button type="button" class="quick-output" data-output="veo_prompt">Veo Prompt</button>
+            <button type="button" class="quick-output" data-output="rhino_steps">Rhino Steps</button>
           </div>
 
           <form id="designerForm" class="designer-form">
@@ -114,6 +147,7 @@
                 <option value="bracelet">Bracelet / สร้อยข้อมือ</option>
                 <option value="earrings">Earrings / ต่างหู</option>
                 <option value="pendant">Pendant / จี้</option>
+                <option value="brooch">Brooch / เข็มกลัด</option>
                 <option value="full_set">Full Set / ครบเซ็ต</option>
               </select>
             </label>
@@ -158,8 +192,10 @@
                 <option value="cad_brief">CAD Brief</option>
                 <option value="design_concept">Design Concept</option>
                 <option value="stone_map">Stone Map</option>
+                <option value="sales_story">Sales Story</option>
                 <option value="sales_caption">Sales Caption</option>
                 <option value="veo_prompt">Veo Prompt</option>
+                <option value="rhino_steps">Rhino Steps</option>
               </select>
             </label>
 
@@ -170,14 +206,21 @@
 
             <div class="button-row full">
               <button type="button" id="previewPayload">Preview Payload</button>
+              <button type="button" id="generateLocal">Generate Local Draft</button>
               <button type="submit">Send to n8n</button>
             </div>
           </form>
         </section>
 
         <section class="panel output-panel">
-          <h2>Output</h2>
-          <pre id="outputBox">พร้อมรับคำสั่งจาก AI Designer...</pre>
+          <div class="section-heading">
+            <div>
+              <h2>Designer Output</h2>
+              <p class="muted">ผลลัพธ์จาก AI Designer Pro จะแสดงตรงนี้</p>
+            </div>
+            <button type="button" id="copyOutput" class="secondary-button">Copy Output</button>
+          </div>
+          <pre id="outputBox">พร้อมรับคำสั่งจาก AI Designer Pro...</pre>
         </section>
       </section>
 
