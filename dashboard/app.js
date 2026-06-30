@@ -33,7 +33,7 @@ const commands = [
 
 const pageTitles = {
   home: "Home",
-  designer: "AI Designer",
+  designer: "AI Designer Pro",
   cad: "CAD Library",
   customers: "Customer Manager",
   orders: "Orders",
@@ -101,50 +101,156 @@ function saveWebhookUrl() {
   }
 }
 
+function getDesignerData() {
+  return {
+    jewelry_type: document.getElementById("jewelryType").value,
+    style: document.getElementById("style").value.trim(),
+    metal: document.getElementById("metal").value.trim(),
+    main_stone: document.getElementById("mainStone").value.trim(),
+    accent_stones: document.getElementById("accentStones").value.trim(),
+    target_market: document.getElementById("targetMarket").value.trim(),
+    budget_level: document.getElementById("budgetLevel").value,
+    output_type: document.getElementById("outputType").value,
+    notes: document.getElementById("notes").value.trim()
+  };
+}
+
 function buildDesignerPayload() {
   return {
     command: "design",
     prompt: createDesignerPrompt(),
     business: "jewelry",
-    source: "ptr_ai_dashboard_v2",
-    mode: "ai_designer",
-    ai_designer: {
-      jewelry_type: document.getElementById("jewelryType").value,
-      style: document.getElementById("style").value.trim(),
-      metal: document.getElementById("metal").value.trim(),
-      main_stone: document.getElementById("mainStone").value.trim(),
-      accent_stones: document.getElementById("accentStones").value.trim(),
-      target_market: document.getElementById("targetMarket").value.trim(),
-      budget_level: document.getElementById("budgetLevel").value,
-      output_type: document.getElementById("outputType").value,
-      notes: document.getElementById("notes").value.trim()
-    }
+    source: "ptr_ai_dashboard_v3",
+    mode: "ai_designer_pro",
+    ai_designer: getDesignerData()
   };
 }
 
 function createDesignerPrompt() {
-  const jewelryType = document.getElementById("jewelryType").value;
-  const style = document.getElementById("style").value.trim();
-  const metal = document.getElementById("metal").value.trim();
-  const mainStone = document.getElementById("mainStone").value.trim();
-  const accentStones = document.getElementById("accentStones").value.trim();
-  const targetMarket = document.getElementById("targetMarket").value.trim();
-  const budgetLevel = document.getElementById("budgetLevel").value;
-  const outputType = document.getElementById("outputType").value;
-  const notes = document.getElementById("notes").value.trim();
-
+  const data = getDesignerData();
   return [
-    "You are PTR AI Designer, a senior jewelry design specialist.",
-    `Create a ${outputType} for a ${jewelryType}.`,
-    `Style: ${style}`,
-    `Metal: ${metal}`,
-    `Main stone: ${mainStone}`,
-    `Accent stones: ${accentStones}`,
-    `Target market: ${targetMarket}`,
-    `Budget level: ${budgetLevel}`,
-    `Notes: ${notes}`,
-    "Return a clear jewelry concept with design details, CAD brief, stone map, production notes, and sales story when relevant."
+    "You are PTR AI Designer Pro, a senior jewelry design specialist, CAD planner, gemstone stylist, and luxury brand storyteller.",
+    `Create a ${data.output_type} for a ${data.jewelry_type}.`,
+    `Style: ${data.style}`,
+    `Metal: ${data.metal}`,
+    `Main stone: ${data.main_stone}`,
+    `Accent stones: ${data.accent_stones}`,
+    `Target market: ${data.target_market}`,
+    `Budget level: ${data.budget_level}`,
+    `Notes: ${data.notes}`,
+    "Return practical output for jewelry business use. Include CAD logic, gemstone placement, production notes, premium story, and sales angle when relevant."
   ].join("\n");
+}
+
+function setOutputType(outputType) {
+  document.getElementById("outputType").value = outputType;
+  document.querySelectorAll(".quick-output").forEach(button => {
+    button.classList.toggle("active", button.dataset.output === outputType);
+  });
+}
+
+function generateLocalDraft() {
+  const data = getDesignerData();
+  const title = `${data.style} ${data.jewelry_type} with ${data.main_stone}`;
+  const outputType = data.output_type;
+
+  const sections = {
+    cad_brief: [
+      `# CAD Brief: ${title}`,
+      "",
+      `Jewelry Type: ${data.jewelry_type}`,
+      `Style Direction: ${data.style}`,
+      `Metal: ${data.metal}`,
+      `Main Stone: ${data.main_stone}`,
+      `Accent Stones: ${data.accent_stones}`,
+      "",
+      "CAD Structure:",
+      "- Create the main silhouette with balanced luxury proportions.",
+      "- Build a secure center setting for the main stone.",
+      "- Add accent stone positions with clean spacing and production-safe prongs.",
+      "- Keep comfort-fit contact areas for daily wear.",
+      "- Prepare model logic for Rhino / MatrixGold production workflow.",
+      "",
+      `Production Notes: ${data.notes}`
+    ],
+    stone_map: [
+      `# Stone Map: ${title}`,
+      "",
+      `Center Stone: ${data.main_stone}`,
+      `Accent Stones: ${data.accent_stones}`,
+      "",
+      "Suggested Mapping:",
+      "- Center: 1 main stone as the visual hero.",
+      "- Halo / border: small diamonds or accent stones following the main shape.",
+      "- Side detail: balanced stone layout on left and right side.",
+      "- Check stone spacing, prong clearance, and casting thickness.",
+      "",
+      "Next Step: Convert this into a numbered stone-setting map for CAD and setter communication."
+    ],
+    sales_story: [
+      `# Sales Story: ${title}`,
+      "",
+      `This piece is designed for ${data.target_market}.`,
+      `The ${data.main_stone} becomes the emotional center, supported by ${data.accent_stones}.`,
+      `The ${data.metal} gives the piece a premium and warm luxury feeling.`,
+      "",
+      "Story Angle:",
+      "- Royal elegance",
+      "- Personal meaning",
+      "- Premium craftsmanship",
+      "- Timeless value",
+      "",
+      `Design Mood: ${data.notes}`
+    ],
+    sales_caption: [
+      `# Sales Caption: ${title}`,
+      "",
+      `เครื่องประดับดีไซน์หรู สร้างจาก ${data.metal} พร้อม ${data.main_stone} เป็นหัวใจหลักของงาน`,
+      `เสริมประกายด้วย ${data.accent_stones} เหมาะสำหรับ ${data.target_market}`,
+      "",
+      "งานนี้ออกแบบเพื่อคนที่ต้องการความงาม ความหมาย และคุณค่าที่อยู่ได้นาน",
+      "",
+      "#PTRAI #JewelryDesign #LuxuryJewelry #CADJewelry #เครื่องประดับหรู"
+    ],
+    veo_prompt: [
+      `# Veo Prompt: ${title}`,
+      "",
+      "Create an 8-second luxury jewelry showcase video.",
+      `Subject: ${data.jewelry_type} made of ${data.metal} with ${data.main_stone} and ${data.accent_stones}.`,
+      `Style: ${data.style}.`,
+      `Target feeling: premium, elegant, cinematic, royal, high jewelry.`,
+      "Camera: slow macro rotation, soft studio lighting, gemstone sparkle, dark luxury background.",
+      "No text, no logo, no watermark.",
+      "Spoken language: Thai only if voice is used."
+    ],
+    rhino_steps: [
+      `# Rhino Steps: ${title}`,
+      "",
+      "1. Set unit and reference scale for jewelry production.",
+      "2. Create base curve or ring/pendant outline.",
+      "3. Build main surface or solid body.",
+      `4. Create center setting for ${data.main_stone}.`,
+      `5. Add stone seats for ${data.accent_stones}.`,
+      "6. Add prongs, bezels, or pavé details.",
+      "7. Check thickness, spacing, casting safety, and stone clearance.",
+      "8. Prepare render material and export production files."
+    ],
+    design_concept: [
+      `# Design Concept: ${title}`,
+      "",
+      `A ${data.style} ${data.jewelry_type} designed for ${data.target_market}.`,
+      `The design uses ${data.metal}, a ${data.main_stone}, and ${data.accent_stones}.`,
+      "",
+      "Key Design Details:",
+      "- Strong center focus",
+      "- Elegant symmetry",
+      "- Premium gemstone balance",
+      "- Production-aware construction",
+      `- Notes: ${data.notes}`
+    ]
+  };
+
+  outputBox.textContent = (sections[outputType] || sections.design_concept).join("\n");
 }
 
 async function sendToN8n(event) {
@@ -188,6 +294,17 @@ function previewPayload() {
   outputBox.textContent = JSON.stringify(payload, null, 2);
 }
 
+async function copyOutput() {
+  const text = outputBox.textContent || "";
+  try {
+    await navigator.clipboard.writeText(text);
+    const oldText = outputBox.textContent;
+    outputBox.textContent = "คัดลอก Output แล้วครับ\n\n" + oldText;
+  } catch (error) {
+    outputBox.textContent = "คัดลอกไม่สำเร็จ กรุณาลากเลือกข้อความแล้วคัดลอกเองครับ";
+  }
+}
+
 renderCommands();
 loadWebhookUrl();
 
@@ -195,6 +312,16 @@ document.querySelectorAll(".nav-item").forEach(button => {
   button.addEventListener("click", () => switchPage(button.dataset.page));
 });
 
+document.querySelectorAll(".module-card").forEach(card => {
+  card.addEventListener("click", () => switchPage(card.dataset.jump));
+});
+
+document.querySelectorAll(".quick-output").forEach(button => {
+  button.addEventListener("click", () => setOutputType(button.dataset.output));
+});
+
 document.getElementById("saveWebhook").addEventListener("click", saveWebhookUrl);
 document.getElementById("previewPayload").addEventListener("click", previewPayload);
+document.getElementById("generateLocal").addEventListener("click", generateLocalDraft);
+document.getElementById("copyOutput").addEventListener("click", copyOutput);
 document.getElementById("designerForm").addEventListener("submit", sendToN8n);
