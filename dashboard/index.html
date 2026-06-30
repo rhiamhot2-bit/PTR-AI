@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTR AI Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">PTR AI Version 1.0</p>
+      <h1>Dashboard + AI Designer</h1>
+      <p class="hero-text">
+        ศูนย์ควบคุม AI สำหรับธุรกิจจิวเวลรี่: ออกแบบงาน, สร้างคอนเทนต์,
+        วางแผนธุรกิจ, ทำ Prompt วิดีโอ, ช่วย Rhino/CAD และเชื่อม n8n Automation
+      </p>
+    </div>
+    <div class="status-card">
+      <span class="status-dot"></span>
+      <strong>Dashboard V1</strong>
+      <p>Static local dashboard</p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>System Status</h2>
+      <div class="status-grid">
+        <div><span>Bot</span><strong>Ready</strong></div>
+        <div><span>n8n</span><strong id="webhookStatus">Not connected</strong></div>
+        <div><span>Prefix</span><strong>!</strong></div>
+        <div><span>Version</span><strong>1.0</strong></div>
+      </div>
+      <label class="field full">
+        n8n Webhook URL
+        <input id="webhookUrl" type="url" placeholder="https://your-n8n-domain/webhook/ptr-ai-agent" />
+      </label>
+      <button id="saveWebhook" class="secondary-button">Save Webhook URL</button>
+    </section>
+
+    <section class="panel">
+      <h2>Command Center</h2>
+      <div class="command-list" id="commandList"></div>
+    </section>
+
+    <section class="panel designer-panel">
+      <h2>AI Designer Panel</h2>
+      <p class="muted">กรอกข้อมูลแบบจิวเวลรี่ แล้วส่งเข้า n8n หรือใช้ดู Prompt ก่อน</p>
+
+      <form id="designerForm" class="designer-form">
+        <label class="field">
+          Jewelry Type
+          <select id="jewelryType">
+            <option value="ring">Ring / แหวน</option>
+            <option value="necklace">Necklace / สร้อยคอ</option>
+            <option value="bracelet">Bracelet / สร้อยข้อมือ</option>
+            <option value="earrings">Earrings / ต่างหู</option>
+            <option value="pendant">Pendant / จี้</option>
+            <option value="full_set">Full Set / ครบเซ็ต</option>
+          </select>
+        </label>
+
+        <label class="field">
+          Style
+          <input id="style" value="luxury bridal UAE" />
+        </label>
+
+        <label class="field">
+          Metal
+          <input id="metal" value="18K rose gold" />
+        </label>
+
+        <label class="field">
+          Main Stone
+          <input id="mainStone" value="oval emerald" />
+        </label>
+
+        <label class="field">
+          Accent Stones
+          <input id="accentStones" value="round diamonds" />
+        </label>
+
+        <label class="field">
+          Target Market
+          <input id="targetMarket" value="premium Middle East customer" />
+        </label>
+
+        <label class="field">
+          Budget Level
+          <select id="budgetLevel">
+            <option value="high">High / ลูกค้าพรีเมียม</option>
+            <option value="medium">Medium / ระดับกลาง</option>
+            <option value="entry">Entry / เริ่มต้น</option>
+          </select>
+        </label>
+
+        <label class="field">
+          Output Type
+          <select id="outputType">
+            <option value="cad_brief">CAD Brief</option>
+            <option value="design_concept">Design Concept</option>
+            <option value="stone_map">Stone Map</option>
+            <option value="sales_caption">Sales Caption</option>
+            <option value="veo_prompt">Veo Prompt</option>
+          </select>
+        </label>
+
+        <label class="field full">
+          Notes
+          <textarea id="notes" rows="4">hidden halo, comfortable daily wear, elegant royal feeling</textarea>
+        </label>
+
+        <div class="button-row full">
+          <button type="button" id="previewPayload">Preview Payload</button>
+          <button type="submit">Send to n8n</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel output-panel">
+      <h2>Output</h2>
+      <pre id="outputBox">พร้อมรับคำสั่งจาก AI Designer...</pre>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
