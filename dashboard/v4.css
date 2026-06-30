@@ -1,0 +1,114 @@
+.chat-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+}
+
+.chat-box {
+  min-height: 390px;
+  max-height: 520px;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.chat-message {
+  margin-bottom: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.chat-message.user {
+  border-color: rgba(96, 165, 250, 0.45);
+}
+
+.chat-message.bot {
+  border-color: rgba(243, 201, 105, 0.45);
+}
+
+.gallery-grid,
+.customer-grid,
+.kanban-board {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.gallery-grid,
+.customer-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.kanban-board {
+  grid-template-columns: repeat(5, 1fr);
+  align-items: start;
+}
+
+.gallery-card,
+.customer-card,
+.kanban-column {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.gallery-thumb {
+  height: 120px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+  background: linear-gradient(135deg, rgba(243, 201, 105, 0.22), rgba(96, 165, 250, 0.14));
+  margin-bottom: 14px;
+}
+
+.gallery-card span,
+.customer-card em {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f3c969;
+  font-style: normal;
+}
+
+.customer-card strong {
+  display: block;
+  color: #f3c969;
+  font-size: 20px;
+  margin: 10px 0;
+}
+
+.customer-card span {
+  display: block;
+  color: #9ca3af;
+}
+
+.kanban-column h3 {
+  color: #f3c969;
+}
+
+.order-card {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin-top: 10px;
+}
+
+@media (max-width: 1050px) {
+  .chat-grid,
+  .gallery-grid,
+  .customer-grid,
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+}
