@@ -3,126 +3,245 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PTR AI Dashboard</title>
+  <title>PTR AI Dashboard V2</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">PTR AI Version 1.0</p>
-      <h1>Dashboard + AI Designer</h1>
-      <p class="hero-text">
-        ศูนย์ควบคุม AI สำหรับธุรกิจจิวเวลรี่: ออกแบบงาน, สร้างคอนเทนต์,
-        วางแผนธุรกิจ, ทำ Prompt วิดีโอ, ช่วย Rhino/CAD และเชื่อม n8n Automation
-      </p>
-    </div>
-    <div class="status-card">
-      <span class="status-dot"></span>
-      <strong>Dashboard V1</strong>
-      <p>Static local dashboard</p>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="panel">
-      <h2>System Status</h2>
-      <div class="status-grid">
-        <div><span>Bot</span><strong>Ready</strong></div>
-        <div><span>n8n</span><strong id="webhookStatus">Not connected</strong></div>
-        <div><span>Prefix</span><strong>!</strong></div>
-        <div><span>Version</span><strong>1.0</strong></div>
-      </div>
-      <label class="field full">
-        n8n Webhook URL
-        <input id="webhookUrl" type="url" placeholder="https://your-n8n-domain/webhook/ptr-ai-agent" />
-      </label>
-      <button id="saveWebhook" class="secondary-button">Save Webhook URL</button>
-    </section>
-
-    <section class="panel">
-      <h2>Command Center</h2>
-      <div class="command-list" id="commandList"></div>
-    </section>
-
-    <section class="panel designer-panel">
-      <h2>AI Designer Panel</h2>
-      <p class="muted">กรอกข้อมูลแบบจิวเวลรี่ แล้วส่งเข้า n8n หรือใช้ดู Prompt ก่อน</p>
-
-      <form id="designerForm" class="designer-form">
-        <label class="field">
-          Jewelry Type
-          <select id="jewelryType">
-            <option value="ring">Ring / แหวน</option>
-            <option value="necklace">Necklace / สร้อยคอ</option>
-            <option value="bracelet">Bracelet / สร้อยข้อมือ</option>
-            <option value="earrings">Earrings / ต่างหู</option>
-            <option value="pendant">Pendant / จี้</option>
-            <option value="full_set">Full Set / ครบเซ็ต</option>
-          </select>
-        </label>
-
-        <label class="field">
-          Style
-          <input id="style" value="luxury bridal UAE" />
-        </label>
-
-        <label class="field">
-          Metal
-          <input id="metal" value="18K rose gold" />
-        </label>
-
-        <label class="field">
-          Main Stone
-          <input id="mainStone" value="oval emerald" />
-        </label>
-
-        <label class="field">
-          Accent Stones
-          <input id="accentStones" value="round diamonds" />
-        </label>
-
-        <label class="field">
-          Target Market
-          <input id="targetMarket" value="premium Middle East customer" />
-        </label>
-
-        <label class="field">
-          Budget Level
-          <select id="budgetLevel">
-            <option value="high">High / ลูกค้าพรีเมียม</option>
-            <option value="medium">Medium / ระดับกลาง</option>
-            <option value="entry">Entry / เริ่มต้น</option>
-          </select>
-        </label>
-
-        <label class="field">
-          Output Type
-          <select id="outputType">
-            <option value="cad_brief">CAD Brief</option>
-            <option value="design_concept">Design Concept</option>
-            <option value="stone_map">Stone Map</option>
-            <option value="sales_caption">Sales Caption</option>
-            <option value="veo_prompt">Veo Prompt</option>
-          </select>
-        </label>
-
-        <label class="field full">
-          Notes
-          <textarea id="notes" rows="4">hidden halo, comfortable daily wear, elegant royal feeling</textarea>
-        </label>
-
-        <div class="button-row full">
-          <button type="button" id="previewPayload">Preview Payload</button>
-          <button type="submit">Send to n8n</button>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">PTR</div>
+        <div>
+          <strong>PTR AI</strong>
+          <span>Jewelry OS</span>
         </div>
-      </form>
-    </section>
+      </div>
 
-    <section class="panel output-panel">
-      <h2>Output</h2>
-      <pre id="outputBox">พร้อมรับคำสั่งจาก AI Designer...</pre>
-    </section>
-  </main>
+      <nav class="nav-menu" aria-label="PTR AI navigation">
+        <button class="nav-item active" data-page="home">🏠 Home</button>
+        <button class="nav-item" data-page="designer">💎 AI Designer</button>
+        <button class="nav-item" data-page="cad">📚 CAD Library</button>
+        <button class="nav-item" data-page="customers">👥 Customer</button>
+        <button class="nav-item" data-page="orders">📦 Orders</button>
+        <button class="nav-item" data-page="discord">🤖 Discord</button>
+        <button class="nav-item" data-page="n8n">🔄 n8n</button>
+        <button class="nav-item" data-page="analytics">📈 Analytics</button>
+        <button class="nav-item" data-page="settings">⚙️ Settings</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div>
+          <strong>Dashboard V2</strong>
+          <small>Local development</small>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PTR AI Version 1.0</p>
+          <h1 id="pageTitle">Home</h1>
+        </div>
+        <div class="top-actions">
+          <span class="pill">Bot: Ready</span>
+          <span class="pill" id="topWebhookStatus">n8n: Not connected</span>
+        </div>
+      </header>
+
+      <section class="page active" id="homePage">
+        <div class="hero-card">
+          <div>
+            <p class="eyebrow">PTR AI Operating System</p>
+            <h2>Dashboard + AI Designer</h2>
+            <p class="hero-text">
+              ศูนย์ควบคุม AI สำหรับธุรกิจจิวเวลรี่: ออกแบบงาน สร้างคอนเทนต์ วางแผนธุรกิจ
+              ทำ Prompt วิดีโอ ช่วย Rhino/CAD และเชื่อม n8n Automation
+            </p>
+          </div>
+          <div class="hero-badge">
+            <span class="status-dot"></span>
+            <strong>Ready for V2</strong>
+            <small>Sidebar platform layout</small>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="panel">
+            <h2>System Status</h2>
+            <div class="status-grid">
+              <div><span>Bot</span><strong>Ready</strong></div>
+              <div><span>n8n</span><strong id="webhookStatus">Not connected</strong></div>
+              <div><span>Prefix</span><strong>!</strong></div>
+              <div><span>Version</span><strong>1.0</strong></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Next Build Plan</h2>
+            <div class="timeline-list">
+              <div><strong>1</strong><span>AI Designer ส่งข้อมูลเข้า n8n</span></div>
+              <div><strong>2</strong><span>CAD Library เก็บไฟล์ 3D และรูป Render</span></div>
+              <div><strong>3</strong><span>Customer + Orders สำหรับงานลูกค้า</span></div>
+              <div><strong>4</strong><span>Analytics รายงานธุรกิจและยอดงาน</span></div>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <h2>Command Center</h2>
+          <div class="command-list" id="commandList"></div>
+        </section>
+      </section>
+
+      <section class="page" id="designerPage">
+        <section class="panel designer-panel">
+          <div class="section-heading">
+            <div>
+              <h2>AI Designer Panel</h2>
+              <p class="muted">กรอกข้อมูลแบบจิวเวลรี่ แล้วส่งเข้า n8n หรือใช้ดู Prompt ก่อน</p>
+            </div>
+            <span class="pill">Jewelry Brain</span>
+          </div>
+
+          <form id="designerForm" class="designer-form">
+            <label class="field">
+              Jewelry Type
+              <select id="jewelryType">
+                <option value="ring">Ring / แหวน</option>
+                <option value="necklace">Necklace / สร้อยคอ</option>
+                <option value="bracelet">Bracelet / สร้อยข้อมือ</option>
+                <option value="earrings">Earrings / ต่างหู</option>
+                <option value="pendant">Pendant / จี้</option>
+                <option value="full_set">Full Set / ครบเซ็ต</option>
+              </select>
+            </label>
+
+            <label class="field">
+              Style
+              <input id="style" value="luxury bridal UAE" />
+            </label>
+
+            <label class="field">
+              Metal
+              <input id="metal" value="18K rose gold" />
+            </label>
+
+            <label class="field">
+              Main Stone
+              <input id="mainStone" value="oval emerald" />
+            </label>
+
+            <label class="field">
+              Accent Stones
+              <input id="accentStones" value="round diamonds" />
+            </label>
+
+            <label class="field">
+              Target Market
+              <input id="targetMarket" value="premium Middle East customer" />
+            </label>
+
+            <label class="field">
+              Budget Level
+              <select id="budgetLevel">
+                <option value="high">High / ลูกค้าพรีเมียม</option>
+                <option value="medium">Medium / ระดับกลาง</option>
+                <option value="entry">Entry / เริ่มต้น</option>
+              </select>
+            </label>
+
+            <label class="field">
+              Output Type
+              <select id="outputType">
+                <option value="cad_brief">CAD Brief</option>
+                <option value="design_concept">Design Concept</option>
+                <option value="stone_map">Stone Map</option>
+                <option value="sales_caption">Sales Caption</option>
+                <option value="veo_prompt">Veo Prompt</option>
+              </select>
+            </label>
+
+            <label class="field full">
+              Notes
+              <textarea id="notes" rows="4">hidden halo, comfortable daily wear, elegant royal feeling</textarea>
+            </label>
+
+            <div class="button-row full">
+              <button type="button" id="previewPayload">Preview Payload</button>
+              <button type="submit">Send to n8n</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel output-panel">
+          <h2>Output</h2>
+          <pre id="outputBox">พร้อมรับคำสั่งจาก AI Designer...</pre>
+        </section>
+      </section>
+
+      <section class="page" id="cadPage">
+        <section class="panel placeholder-panel">
+          <h2>CAD Library</h2>
+          <p>พื้นที่นี้จะใช้เก็บไฟล์ 3D, Rhino, MatrixGold, Render, Stone Map และ Collection ของงานจิวเวลรี่</p>
+          <div class="feature-cards">
+            <div>💍 Ring Files</div>
+            <div>📐 CAD Briefs</div>
+            <div>🖼️ Render Images</div>
+            <div>🧾 Stone Maps</div>
+          </div>
+        </section>
+      </section>
+
+      <section class="page" id="customersPage">
+        <section class="panel placeholder-panel">
+          <h2>Customer Manager</h2>
+          <p>ต่อไปเราจะเพิ่มข้อมูลลูกค้า ประวัติการสั่งงาน งบประมาณ สไตล์ที่ชอบ และสถานะติดตามงาน</p>
+        </section>
+      </section>
+
+      <section class="page" id="ordersPage">
+        <section class="panel placeholder-panel">
+          <h2>Orders</h2>
+          <p>ต่อไปจะใช้ติดตามงานออกแบบ งาน CAD งานหล่อ งานฝัง งานขัด งานส่งมอบ และยอดขาย</p>
+        </section>
+      </section>
+
+      <section class="page" id="discordPage">
+        <section class="panel placeholder-panel">
+          <h2>Discord Control</h2>
+          <p>ควบคุมคำสั่ง Discord Bot เช่น !design, !content, !business, !veo, !rhino และ !automation</p>
+        </section>
+      </section>
+
+      <section class="page" id="n8nPage">
+        <section class="panel">
+          <h2>n8n Connection</h2>
+          <p class="muted">ใส่ Webhook URL เพื่อให้ Dashboard ส่งข้อมูลไปยัง n8n</p>
+          <label class="field full">
+            n8n Webhook URL
+            <input id="webhookUrl" type="url" placeholder="https://your-n8n-domain/webhook/ptr-ai-agent" />
+          </label>
+          <button id="saveWebhook" class="secondary-button">Save Webhook URL</button>
+        </section>
+      </section>
+
+      <section class="page" id="analyticsPage">
+        <section class="panel placeholder-panel">
+          <h2>Analytics</h2>
+          <p>ต่อไปจะใช้ดูจำนวนงานออกแบบ ลูกค้าใหม่ คำสั่งที่ใช้บ่อย งานที่รอทำ และรายได้</p>
+        </section>
+      </section>
+
+      <section class="page" id="settingsPage">
+        <section class="panel placeholder-panel">
+          <h2>Settings</h2>
+          <p>ตั้งค่าระบบ PTR AI เช่น ชื่อแบรนด์ Version Webhook Command Prefix และการเชื่อมต่อภายนอก</p>
+        </section>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
