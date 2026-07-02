@@ -5,10 +5,12 @@ import os
 
 import discord
 from discord.ext import commands
-
+from commands.project import project_command
+from commands.findcustomer import findcustomer_command
 from commands.automation import automation_command
 from commands.business import business_command
 from commands.content import content_command
+from commands.customer import customer_command
 from commands.design import design_command
 from commands.rhino import rhino_command
 from commands.veo import veo_command
@@ -21,6 +23,9 @@ COMMAND_HANDLERS = {
     "design": design_command,
     "content": content_command,
     "business": business_command,
+    "customer": customer_command,
+    "findcustomer": findcustomer_command,
+    "project": project_command,
     "veo": veo_command,
     "rhino": rhino_command,
     "automation": automation_command,

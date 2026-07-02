@@ -1,0 +1,26 @@
+[
+  {
+    "id": "PTR-013",
+    "title": "Gem Setting CAD Standard",
+    "category": "Engineering",
+    "version": "1.0",
+    "founder": "เทียม",
+    "rules": {
+      "bead_min_mm": 0.3,
+      "bead_min_height_mm": 0.4,
+      "bead_standard_mm": "0.5-0.6",
+      "bead_max_mm": 0.8,
+      "bead_max_height_mm": 0.8,
+      "shared_bead_spacing_mm": "0.15-0.20",
+      "single_bead_spacing_mm": "0.25-0.35"
+    },
+    "why": "เพื่อให้งานฝังแข็งแรง สวยงาม และช่างฝังทำงานได้จริง",
+    "founder_tip": "ต้องถามลูกค้าก่อนว่าชอบไข่ปลาร่วมหรือไข่ปลาแยก",
+    "common_mistakes": [
+      "ไข่ปลาเล็กเกินไป",
+      "เพชรห่างเกินไป",
+      "ไม่เผื่อให้ช่างฝังทำงาน",
+      "ไม่ถามลูกค้าก่อน"
+    ]
+  }
+]
