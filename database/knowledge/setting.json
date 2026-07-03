@@ -1,0 +1,25 @@
+[
+  {
+    "id": "PTR-SET-001",
+    "title": "Bead Setting CAD Standard",
+    "category": "Stone Setting",
+    "keywords": ["ไข่ปลา", "bead", "pave", "ฝังเพชร", "setting"],
+    "standard": {
+      "bead_min_diameter_mm": 0.3,
+      "bead_min_height_mm": 0.4,
+      "bead_standard_diameter_mm": "0.5-0.6",
+      "bead_max_diameter_mm": 0.8,
+      "bead_max_height_mm": 0.8,
+      "shared_bead_spacing_mm": "0.15-0.20",
+      "single_bead_spacing_mm": "0.25-0.35"
+    },
+    "why": "เพื่อให้ไข่ปลาแข็งแรง สวยงาม ฝังได้จริง และเพชรไม่ห่างเกินไป",
+    "founder_tip": "ต้องถามลูกค้าก่อนว่าชอบไข่ปลาร่วมหรือไข่ปลาแยก",
+    "common_mistakes": [
+      "ไข่ปลาเล็กเกินไป",
+      "เพชรห่างเกินไป",
+      "ไม่ได้เผื่อเนื้อให้ช่างฝัง",
+      "ไม่ถามลูกค้าก่อน"
+    ]
+  }
+]

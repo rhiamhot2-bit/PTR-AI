@@ -1,0 +1,17 @@
+[
+  {
+    "id": "PTR-MOLD-001",
+    "title": "Mold and Shrinkage Compensation",
+    "category": "Mold",
+    "keywords": ["อัดยาง", "พิมพ์", "mold", "เผื่อ", "หดตัว"],
+    "compensation": {
+      "finishing_allowance": "เพิ่มเฉพาะจุดที่ต้องแต่ง เช่น 0.2 mm",
+      "hot_rubber_shrinkage": "3%",
+      "hot_silicone_shrinkage": "1.5%",
+      "cold_silicone_shrinkage": "0%"
+    },
+    "why": "การเผื่อแต่งและการเผื่อหดตัวเป็นคนละเรื่อง ห้ามปนกัน",
+    "founder_tip": "เครื่องฉีดเทียนและเครื่องหล่อแต่ละรุ่นอาจหดไม่เท่ากัน ต้องสังเกตจากโรงงานของตัวเอง",
+    "ai_rule": "ก่อนคำนวณเผื่อ ต้องถามว่างานจริง แม่พิมพ์ อัดยางร้อน ซิลิโคนร้อน หรือซิลิโคนเย็น"
+  }
+]

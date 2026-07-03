@@ -248,3 +248,81 @@ document.getElementById("previewPayload")?.addEventListener("click", previewPayl
 document.getElementById("generateLocal")?.addEventListener("click", generateLocalDraft);
 document.getElementById("copyOutput")?.addEventListener("click", copyOutput);
 document.getElementById("designerForm")?.addEventListener("submit", sendToN8n);
+const standards = [
+  {
+    id: "PTR-013",
+    title: "Gem Setting CAD Standard",
+    category: "Engineering",
+    founder: "เทียม",
+    rules: "Bead min 0.30 mm, standard 0.50-0.60 mm, max 0.80 mm. Shared spacing 0.15-0.20 mm. Single spacing 0.25-0.35 mm.",
+    why: "เพื่อให้งานฝังแข็งแรง สวยงาม และช่างฝังทำงานได้จริง",
+    founder_tip: "ต้องถามลูกค้าก่อนว่าชอบไข่ปลาร่วมหรือไข่ปลาแยก"
+  }
+];
+
+function renderKnowledge(keyword = "") {
+  const box = document.getElementById("knowledgeResults");
+  if (!box) return;
+
+  const q = keyword.toLowerCase();
+
+  const filtered = standards.filter(item =>
+    `${item.id} ${item.title} ${item.category} ${item.rules} ${item.why} ${item.founder_tip}`
+      .toLowerCase()
+      .includes(q)
+  );
+
+  box.innerHTML = filtered.map(item => `
+    <article class="command-card">
+      <h3>${item.id} ${item.title}</h3>
+      <p><strong>Category:</strong> ${item.category}</p>
+      <p><strong>Rules:</strong> ${item.rules}</p>
+      <p><strong>Why:</strong> ${item.why}</p>
+      <p><strong>Founder Tip:</strong> ${item.founder_tip}</p>
+    </article>
+  `).join("");
+}
+
+document.getElementById("knowledgeSearch")?.addEventListener("input", event => {
+  renderKnowledge(event.target.value);
+});
+
+renderKnowledge();const ptrStandards = [
+  {
+    id: "PTR-013",
+    title: "Gem Setting CAD Standard",
+    category: "Engineering",
+    rules: "ไข่ปลาเล็กสุด 0.30 mm สูง 0.40 mm / ค่ากลาง 0.50-0.60 mm / ใหญ่สุด 0.80 mm",
+    spacing: "ไข่ปลาร่วม 0.15-0.20 mm / ไข่ปลาแยก 0.25-0.35 mm",
+    why: "เพื่อให้งานฝังแข็งแรง สวยงาม และผลิตได้จริง",
+    founderTip: "ต้องถามลูกค้าก่อนว่าชอบไข่ปลาร่วมหรือไข่ปลาแยก"
+  }
+];
+
+function renderKnowledge(keyword = "") {
+  const box = document.getElementById("knowledgeResults");
+  if (!box) return;
+
+  const q = keyword.toLowerCase();
+
+  const results = ptrStandards.filter(item =>
+    Object.values(item).join(" ").toLowerCase().includes(q)
+  );
+
+  box.innerHTML = results.map(item => `
+    <article class="module-card">
+      <h3>${item.id} — ${item.title}</h3>
+      <p><strong>Category:</strong> ${item.category}</p>
+      <p><strong>Rules:</strong> ${item.rules}</p>
+      <p><strong>Spacing:</strong> ${item.spacing}</p>
+      <p><strong>Why:</strong> ${item.why}</p>
+      <p><strong>Founder Tip:</strong> ${item.founderTip}</p>
+    </article>
+  `).join("");
+}
+
+document.getElementById("knowledgeSearch")?.addEventListener("input", (e) => {
+  renderKnowledge(e.target.value);
+});
+
+renderKnowledge();
