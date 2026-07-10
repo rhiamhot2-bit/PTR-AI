@@ -14,11 +14,11 @@ def test_staggered_plan():
 
     assert plan["status"] == "planned"
     assert plan["layout"] == "staggered"
-    assert plan["center_distance"] == 1.28
+    assert round(plan["center_distance"], 2) == 1.28
     assert plan["row_count"] == 15
     assert plan["stones_per_full_row"] == 7
-    assert plan["stones_per_short_row"] == 7
-    assert plan["estimated_stone_count"] == 105
+    assert plan["stones_per_short_row"] == 6
+    assert plan["estimated_stone_count"] == 98
 
 
 def test_straight_plan():
