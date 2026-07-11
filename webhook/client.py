@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import aiohttp
@@ -36,8 +37,8 @@ async def send_to_n8n(
         return {"ok": True, "message": body[:1900]}
 
     try:
-        data = await response.json()
-    except (aiohttp.ContentTypeError, ValueError):
+        data = json.loads(body)
+    except ValueError:
         return {"ok": True, "message": body[:1900]}
 
     if isinstance(data, dict):
