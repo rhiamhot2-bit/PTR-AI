@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PTR Jewelry CAD Brief",
+  "type": "object",
+  "required": [
+    "jewelry_type",
+    "metal",
+    "center_stone",
+    "setting",
+    "status",
+    "missing_fields",
+    "original_prompt"
+  ],
+  "properties": {
+    "jewelry_type": {
+      "type": ["string", "null"],
+      "enum": ["ring", "pendant", "earrings", "bracelet", "necklace", null]
+    },
+    "ring_size": {"type": ["number", "null"]},
+    "metal": {"type": ["string", "null"]},
+    "center_stone": {
+      "type": "object",
+      "required": ["type", "shape", "length_mm", "width_mm"],
+      "properties": {
+        "type": {"type": ["string", "null"]},
+        "shape": {"type": ["string", "null"]},
+        "length_mm": {"type": ["number", "null"]},
+        "width_mm": {"type": ["number", "null"]}
+      }
+    },
+    "setting": {
+      "type": "object",
+      "required": ["type", "prong_count"],
+      "properties": {
+        "type": {"type": ["string", "null"]},
+        "prong_count": {"type": ["number", "null"]}
+      }
+    },
+    "status": {"enum": ["ready_for_cad", "needs_information"]},
+    "missing_fields": {"type": "array", "items": {"type": "string"}},
+    "original_prompt": {"type": "string"}
+  }
+}
