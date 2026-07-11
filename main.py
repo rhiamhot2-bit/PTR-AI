@@ -5,13 +5,15 @@ import os
 
 import discord
 from discord.ext import commands
-from commands.project import project_command
-from commands.findcustomer import findcustomer_command
+
 from commands.automation import automation_command
 from commands.business import business_command
+from commands.cadbrief import cadbrief_command
 from commands.content import content_command
 from commands.customer import customer_command
 from commands.design import design_command
+from commands.findcustomer import findcustomer_command
+from commands.project import project_command
 from commands.rhino import rhino_command
 from commands.veo import veo_command
 from utils.config import load_config
@@ -21,6 +23,7 @@ LOGGER = logging.getLogger("ptr_ai")
 
 COMMAND_HANDLERS = {
     "design": design_command,
+    "cadbrief": cadbrief_command,
     "content": content_command,
     "business": business_command,
     "customer": customer_command,
@@ -51,7 +54,7 @@ def build_bot() -> commands.Bot:
         await ctx.reply(
             "**PTR AI Jewelry Agent Commands**\n"
             f"{command_list}\n\n"
-            "Example: `!design Create a bridal ring with an emerald center stone.`"
+            "Example: `!cadbrief แหวนไซซ์ 52 ทอง 18K มรกต Oval 8x6 มม. หนามเตย 4 เตย`"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
