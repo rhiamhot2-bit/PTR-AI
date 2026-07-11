@@ -9,6 +9,7 @@ from discord.ext import commands
 from commands.automation import automation_command
 from commands.business import business_command
 from commands.cadbrief import cadbrief_command
+from commands.cadcheck import cadcheck_command
 from commands.content import content_command
 from commands.customer import customer_command
 from commands.design import design_command
@@ -24,6 +25,7 @@ LOGGER = logging.getLogger("ptr_ai")
 COMMAND_HANDLERS = {
     "design": design_command,
     "cadbrief": cadbrief_command,
+    "cadcheck": cadcheck_command,
     "content": content_command,
     "business": business_command,
     "customer": customer_command,
@@ -54,7 +56,8 @@ def build_bot() -> commands.Bot:
         await ctx.reply(
             "**PTR AI Jewelry Agent Commands**\n"
             f"{command_list}\n\n"
-            "Example: `!cadbrief แหวนไซซ์ 52 ทอง 18K มรกต Oval 8x6 มม. หนามเตย 4 เตย`"
+            "Example: `!cadcheck แหวนไซซ์ 52 ทอง 18K มรกต Oval 8x6 มม. "
+            "หนามเตย 4 เตย ก้านกว้าง 2.5 มม. ก้านหนา 1.8 มม.`"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
