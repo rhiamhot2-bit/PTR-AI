@@ -22,6 +22,15 @@ def build_rhino_setting_v3_script(report: dict[str, Any]) -> str:
     prong_d = float(values["prong_diameter_mm"])
 
     script = script.replace("ptr-rhino-setting-v2", GENERATOR_VERSION)
+    # Use an explicit seat plane frame so the oval axes always match the stone axes.
+    script = script.replace(
+        'rs.PlaneFromNormal((0, {seat_y:.6f}, 0), (0, 1, 0))'.format(
+            seat_y=_geometry(report)[0]
+        ),
+        'rs.PlaneFromFrame((0, {seat_y:.6f}, 0), (1, 0, 0), (0, 0, 1))'.format(
+            seat_y=_geometry(report)[0]
+        ),
+    )
     script = script.replace(
         "# REVIEW REQUIRED - concept geometry, not production-ready.",
         "# REVIEW REQUIRED - v3 review geometry, not production-ready.",
