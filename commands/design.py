@@ -12,7 +12,7 @@ async def design_command(ctx: commands.Context, *, request: str | None = None) -
     if not prompt:
         await ctx.reply(
             "Please include a request. Example: "
-            "`!design Create a bridal ring with an emerald center stone.`"
+            "!design Create a bridal ring with an emerald center stone."
         )
         return
 
