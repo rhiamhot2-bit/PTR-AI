@@ -8,6 +8,7 @@ PTR AI is a Discord bot for jewelry design, CAD briefs, customer/project memory,
 | --- | --- |
 | `!design` | Jewelry concepts, collections, stone/metal ideas, and product design briefs via n8n. |
 | `!cadbrief` | Convert Thai or English jewelry text into structured CAD fields and save JSON locally. |
+| `!cadcheck` | Validate ring engineering dimensions before Rhino Script generation. |
 | `!content` | Captions, ads, product descriptions, launch posts, and email copy. |
 | `!business` | Pricing, customer service, sales scripts, and operations prompts. |
 | `!customer` | Create or update a customer profile. |
@@ -22,6 +23,7 @@ Examples:
 ```text
 !design Create a luxury bridal ring concept with an oval emerald.
 !cadbrief แหวนไซซ์ 52 ทอง 18K มรกต Oval 8x6 มม. หนามเตย 4 เตย
+!cadcheck แหวนไซซ์ 52 ทอง 18K มรกต Oval 8x6 มม. หนามเตย 4 เตย ก้านกว้าง 2.5 มม. ก้านหนา 1.8 มม. หนามเตยหนา 0.7 มม. ระยะเผื่อฝัง 0.1 มม. หัวแหวนสูง 6.5 มม.
 !customer Ahmed country=UAE budget=500000 stone=Emerald metal=22K notes="Royal client"
 !project Ahmed Royal_Ring
 ```
@@ -92,3 +94,18 @@ Run the standard-library tests:
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+
+## CAD Rules Validator
+
+The `!cadcheck` command applies the versioned `ptr-ring-v1` defaults to:
+
+- shank width
+- shank thickness
+- prong diameter
+- stone-seat clearance
+- ring-head height
+
+Results use `pass`, `warning`, `fail`, or `missing`. A report is stored under `MEMORY_ROOT/CAD_Checks`.
+
+These are editable starting values, not production approval. A qualified jewelry professional must review every report before manufacturing or automatic Rhino Script execution.
