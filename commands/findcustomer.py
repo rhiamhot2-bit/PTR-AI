@@ -1,30 +1,27 @@
 import json
-from pathlib import Path
 
 from discord.ext import commands
-
-
-CUSTOMERS_ROOT = Path(r"C:\Users\rhoam\Desktop\PTR_AI_COMPANY\Memory\Customers")
 
 
 async def findcustomer_command(
     ctx: commands.Context,
     *,
     customer: str | None = None,
-):
+) -> None:
     if not customer:
         await ctx.send("Usage: !findcustomer <name>")
         return
 
     customer_name = customer.strip()
-    customer_file = CUSTOMERS_ROOT / customer_name / "customer.json"
+    config = ctx.bot.ptr_config  # type: ignore[attr-defined]
+    customer_file = config.memory_root / "Customers" / customer_name / "customer.json"
 
     if not customer_file.exists():
         await ctx.send(f"❌ ไม่พบข้อมูลลูกค้า: {customer_name}")
         return
 
-    with open(customer_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    with customer_file.open("r", encoding="utf-8") as file:
+        data = json.load(file)
 
     await ctx.send(
         f"👤 Customer Profile\n\n"
