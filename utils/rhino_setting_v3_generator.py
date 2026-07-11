@@ -66,6 +66,18 @@ def geometry_audit(objects):
         # Front now shows the full ring; Top shows the setting profile.
         rs.RotateObjects(created, (0, 0, 0), 90.0, (1, 0, 0), False)
 
+        # Align the complete setting head with the finger direction.
+        # Keep the ring fixed; rotate seat, stone, prongs, basket, and guides together.
+        head_objects = []
+        for layer_name in (
+            "PTR_SETTING_CONCEPT",
+            "PTR_STONE_PLACEHOLDER",
+            "PTR_GIRDLE_GUIDES",
+        ):
+            layer_objects = rs.ObjectsByLayer(layer_name) or []
+            head_objects.extend(layer_objects)
+        rs.RotateObjects(head_objects, (0, 0, 0), 90.0, (0, 0, 1), False)
+
         # Geometry audit reports closed solids but does not Boolean union anything.
         audit = geometry_audit(created)
         rs.CurrentLayer(notes)
