@@ -86,7 +86,7 @@ def production_audit(objects):
         audit_folder = os.path.dirname(r"{output_json_text}")
         if audit_folder and not os.path.exists(audit_folder):
             os.makedirs(audit_folder)
-        with open(r"{output_json_text}", "w", encoding="utf-8") as audit_file:
+        with io.open(r"{output_json_text}", "w", encoding="utf-8") as audit_file:
             json.dump(audit_payload, audit_file, ensure_ascii=False, indent=2)
 
         if can_export:
