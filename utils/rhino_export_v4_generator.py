@@ -27,10 +27,20 @@ def build_rhino_export_v4_script(
 
     audit_code = r'''
 
+def flatten_object_ids(objects):
+    flat = []
+    for obj in objects:
+        if isinstance(obj, (list, tuple)):
+            flat.extend(flatten_object_ids(obj))
+        else:
+            flat.append(obj)
+    return flat
+
+
 def production_audit(objects):
     rows = []
     can_export = True
-    for obj in objects:
+    for obj in flatten_object_ids(objects):
         if not obj or not rs.IsObject(obj):
             can_export = False
             continue
