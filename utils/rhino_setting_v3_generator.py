@@ -62,6 +62,10 @@ def geometry_audit(objects):
                 rs.ObjectName(guide, "PTR_GIRDLE_GUIDE_" + str(index))
                 created.append(guide)
 
+        # Jewelry orientation: rotate the complete assembly from XY into XZ.
+        # Front now shows the full ring; Top shows the setting profile.
+        rs.RotateObjects(created, (0, 0, 0), 90.0, (1, 0, 0), False)
+
         # Geometry audit reports closed solids but does not Boolean union anything.
         audit = geometry_audit(created)
         rs.CurrentLayer(notes)
