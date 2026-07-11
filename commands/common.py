@@ -18,8 +18,7 @@ async def dispatch_jewelry_command(
     prompt = (request or "").strip()
     if not prompt:
         await ctx.reply(
-            f"Please include a request. Example: "
-            f"`!{command_name} Create a luxury gold necklace concept.`"
+            f"Please include a request. Example: !{command_name} Create a luxury gold necklace concept."
         )
         return
 
