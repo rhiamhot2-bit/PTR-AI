@@ -16,6 +16,7 @@ from commands.design import design_command
 from commands.findcustomer import findcustomer_command
 from commands.project import project_command
 from commands.rhino import rhino_command
+from commands.rhinoscript import rhinoscript_command
 from commands.veo import veo_command
 from utils.config import load_config
 
@@ -26,6 +27,7 @@ COMMAND_HANDLERS = {
     "design": design_command,
     "cadbrief": cadbrief_command,
     "cadcheck": cadcheck_command,
+    "rhinoscript": rhinoscript_command,
     "content": content_command,
     "business": business_command,
     "customer": customer_command,
@@ -56,8 +58,7 @@ def build_bot() -> commands.Bot:
         await ctx.reply(
             "**PTR AI Jewelry Agent Commands**\n"
             f"{command_list}\n\n"
-            "Example: `!cadcheck แหวนไซซ์ 52 ทอง 18K มรกต Oval 8x6 มม. "
-            "หนามเตย 4 เตย ก้านกว้าง 2.5 มม. ก้านหนา 1.8 มม.`"
+            "Flow: !cadbrief → !cadcheck → !rhinoscript"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
