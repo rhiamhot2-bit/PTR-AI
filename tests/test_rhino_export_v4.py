@@ -25,6 +25,8 @@ class RhinoExportV4Tests(unittest.TestCase):
             Path("C:/PTR/audit.json"),
         )
         self.assertIn("DuplicateNakedEdgeCurves", script)
+        self.assertIn("flatten_object_ids", script)
+        self.assertIn("for obj in flatten_object_ids(objects)", script)
         self.assertIn("can_export_3dm", script)
         self.assertIn("V4 EXPORT BLOCKED", script)
         self.assertIn("_-SaveAs", script)
