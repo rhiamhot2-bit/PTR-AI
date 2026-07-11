@@ -3,11 +3,13 @@ from datetime import datetime
 from pathlib import Path
 
 
-MEMORY_ROOT = Path(r"C:\Users\rhoam\Desktop\PTR_AI_COMPANY\Memory")
-
-
-def save_design_memory(command: str, prompt: str, user_name: str = "unknown") -> str:
-    folder = MEMORY_ROOT / "Design_History"
+def save_design_memory(
+    memory_root: Path,
+    command: str,
+    prompt: str,
+    user_name: str = "unknown",
+) -> str:
+    folder = memory_root / "Design_History"
     folder.mkdir(parents=True, exist_ok=True)
 
     now = datetime.now()
@@ -21,10 +23,10 @@ def save_design_memory(command: str, prompt: str, user_name: str = "unknown") ->
         "command": command,
         "prompt": prompt,
         "user": user_name,
-        "status": "New"
+        "status": "New",
     }
 
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    with filepath.open("w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
 
     return str(filepath)

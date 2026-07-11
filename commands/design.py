@@ -1,4 +1,3 @@
-
 """Handler for the !design command."""
 
 from discord.ext import commands
@@ -8,14 +7,21 @@ from utils.memory import save_design_memory
 
 
 async def design_command(ctx: commands.Context, *, request: str | None = None) -> None:
-    """Forward !design requests to n8n and save memory."""
-    
-    prompt = request or ""
+    """Validate, save, and forward !design requests to n8n."""
+    prompt = (request or "").strip()
+    if not prompt:
+        await ctx.reply(
+            "Please include a request. Example: "
+            "!design Create a bridal ring with an emerald center stone."
+        )
+        return
 
+    config = ctx.bot.ptr_config  # type: ignore[attr-defined]
     save_design_memory(
+        memory_root=config.memory_root,
         command="design",
         prompt=prompt,
-        user_name=str(ctx.author)
+        user_name=str(ctx.author),
     )
 
-    await dispatch_jewelry_command(ctx, "design", request)
+    await dispatch_jewelry_command(ctx, "design", prompt)

@@ -11,6 +11,7 @@ class Config:
 
     discord_token: str
     n8n_webhook_url: str
+    memory_root: Path
     command_prefix: str = "!"
     request_timeout_seconds: int = 30
 
@@ -31,12 +32,26 @@ def load_dotenv(path: str = ".env") -> None:
         os.environ.setdefault(key, value)
 
 
+def _positive_int(value: str, name: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be a whole number.") from exc
+    if parsed <= 0:
+        raise RuntimeError(f"{name} must be greater than zero.")
+    return parsed
+
+
 def load_config() -> Config:
-    """Load bot configuration from .env and environment variables."""
+    """Load and validate bot configuration from .env and environment variables."""
     load_dotenv()
     return Config(
-        discord_token=os.getenv("DISCORD_TOKEN", ""),
-        n8n_webhook_url=os.getenv("N8N_WEBHOOK_URL", ""),
-        command_prefix=os.getenv("COMMAND_PREFIX", "!"),
-        request_timeout_seconds=int(os.getenv("REQUEST_TIMEOUT_SECONDS", "30")),
+        discord_token=os.getenv("DISCORD_TOKEN", "").strip(),
+        n8n_webhook_url=os.getenv("N8N_WEBHOOK_URL", "").strip(),
+        memory_root=Path(os.getenv("MEMORY_ROOT", "./data/memory")).expanduser(),
+        command_prefix=os.getenv("COMMAND_PREFIX", "!").strip() or "!",
+        request_timeout_seconds=_positive_int(
+            os.getenv("REQUEST_TIMEOUT_SECONDS", "30"),
+            "REQUEST_TIMEOUT_SECONDS",
+        ),
     )
