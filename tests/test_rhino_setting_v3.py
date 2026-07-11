@@ -20,6 +20,8 @@ class RhinoSettingV3Tests(unittest.TestCase):
         self.assertIn("geometry_audit", script)
         self.assertIn("manual Boolean required", script)
         self.assertIn("rs.RotateObjects(created, (0, 0, 0), 90.0, (1, 0, 0), False)", script)
+        self.assertIn("rs.RotateObjects(head_objects, (0, 0, 0), 90.0, (0, 0, 1), False)", script)
+        self.assertIn("PTR_SETTING_CONCEPT", script)
 
     def test_v3_keeps_four_prong_base(self) -> None:
         script = build_rhino_setting_v3_script(validate_cad_request(SAFE))
