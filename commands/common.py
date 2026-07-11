@@ -9,11 +9,18 @@ from discord.ext import commands
 from webhook.client import send_to_n8n
 
 
-async def dispatch_jewelry_command(ctx: commands.Context, command_name: str, request: str | None) -> None:
+async def dispatch_jewelry_command(
+    ctx: commands.Context,
+    command_name: str,
+    request: str | None,
+) -> None:
     """Send a Discord command request to the configured n8n webhook."""
     prompt = (request or "").strip()
     if not prompt:
-        await ctx.reply(f"Please include a request. Example: `!{command_name} Create a luxury gold necklace concept.`")
+        await ctx.reply(
+            f"Please include a request. Example: "
+            f"`!{command_name} Create a luxury gold necklace concept.`"
+        )
         return
 
     config = ctx.bot.ptr_config  # type: ignore[attr-defined]
@@ -31,7 +38,11 @@ async def dispatch_jewelry_command(ctx: commands.Context, command_name: str, req
     }
 
     async with ctx.typing():
-        result = send_to_n8n(config.n8n_webhook_url, payload, config.request_timeout_seconds)
+        result = await send_to_n8n(
+            config.n8n_webhook_url,
+            payload,
+            config.request_timeout_seconds,
+        )
 
     status = "✅" if result.get("ok") else "⚠️"
     message = result.get("reply") or result.get("message") or "The request was processed by n8n."
