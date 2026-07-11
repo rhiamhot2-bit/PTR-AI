@@ -9,6 +9,7 @@ PTR AI is a Discord bot for jewelry design, CAD briefs, customer/project memory,
 | `!design` | Jewelry concepts, collections, stone/metal ideas, and product design briefs via n8n. |
 | `!cadbrief` | Convert Thai or English jewelry text into structured CAD fields and save JSON locally. |
 | `!cadcheck` | Validate ring engineering dimensions before Rhino Script generation. |
+| `!rhinoscript` | Generate a reviewable Rhino 8 Python concept script after all CAD checks pass. |
 | `!content` | Captions, ads, product descriptions, launch posts, and email copy. |
 | `!business` | Pricing, customer service, sales scripts, and operations prompts. |
 | `!customer` | Create or update a customer profile. |
@@ -109,3 +110,19 @@ The `!cadcheck` command applies the versioned `ptr-ring-v1` defaults to:
 Results use `pass`, `warning`, `fail`, or `missing`. A report is stored under `MEMORY_ROOT/CAD_Checks`.
 
 These are editable starting values, not production approval. A qualified jewelry professional must review every report before manufacturing or automatic Rhino Script execution.
+
+
+## Rhino 8 Script Generator v1
+
+The `!rhinoscript` command re-runs the CAD rules and generates a `.py` file only when every engineering check passes.
+
+Version `ptr-rhino-ring-v1` creates:
+
+- an EU-size ring band from the inner circumference
+- an elliptical shank cross-section using the supplied width and thickness
+- a non-production center-stone ellipsoid placeholder
+- separate metal, stone-placeholder, and notes layers
+
+Generated files are stored under `MEMORY_ROOT/Rhino_Scripts` and attached to the Discord reply.
+
+The generator does not open Rhino, run the script automatically, create production prongs, cut a stone seat, or save a `.3dm` file. A jewelry CAD professional must inspect and approve the script and resulting geometry.
