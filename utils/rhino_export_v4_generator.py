@@ -22,7 +22,7 @@ def build_rhino_export_v4_script(
     script = script.replace("ptr-rhino-setting-v3", GENERATOR_VERSION)
     script = script.replace(
         "import rhinoscriptsyntax as rs",
-        "import json\nimport os\nimport Rhino\nimport scriptcontext as sc\nimport rhinoscriptsyntax as rs",
+        "import io\nimport json\nimport os\nimport Rhino\nimport scriptcontext as sc\nimport rhinoscriptsyntax as rs",
     )
 
     audit_code = r'''
