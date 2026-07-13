@@ -12,7 +12,8 @@ GENERATOR_VERSION = "ptr-production-readiness-v1"
 def build_production_readiness_script(output_audit_json: Path) -> str:
     """Return a Rhino script that audits the open document without modifying it."""
     output_text = str(output_audit_json).replace("\\", "/")
-    return f'''# PTR JEW3D Rhino 8 Production Readiness Audit
+    return f'''# -*- coding: utf-8 -*-
+# PTR JEW3D Rhino 8 Production Readiness Audit
 # Generator: {GENERATOR_VERSION}
 # REPORT ONLY: this script never Boolean-unions, deletes, or exports geometry.
 import io
