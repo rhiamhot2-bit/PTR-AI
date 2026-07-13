@@ -31,7 +31,12 @@ class RhinoExportV4Tests(unittest.TestCase):
         self.assertIn("for obj in flatten_object_ids(objects)", script)
         self.assertIn("can_export_3dm", script)
         self.assertIn("V4 EXPORT BLOCKED", script)
-        self.assertIn("_-SaveAs", script)
+        self.assertIn("Write3dmFile", script)
+        self.assertIn("FileWriteOptions", script)
+        self.assertIn("os.path.isfile", script)
+        self.assertIn("\"export_saved\"", script)
+        self.assertIn("V4 EXPORT FAILED", script)
+        self.assertNotIn("_-SaveAs", script)
         self.assertIn("ptr-rhino-export-v4", script)
 
     def test_unique_v4_paths_use_separate_folders(self) -> None:
