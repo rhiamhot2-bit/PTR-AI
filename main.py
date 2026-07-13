@@ -19,6 +19,7 @@ from commands.rhino import rhino_command
 from commands.rhinoscript import rhinoscript_command
 from commands.rhinoscript2 import rhinoscript2_command
 from commands.rhinoscript3 import rhinoscript3_command
+from commands.rhinoscript4 import rhinoscript4_command
 from commands.veo import veo_command
 from utils.config import load_config
 
@@ -32,6 +33,7 @@ COMMAND_HANDLERS = {
     "rhinoscript": rhinoscript_command,
     "rhinoscript2": rhinoscript2_command,
     "rhinoscript3": rhinoscript3_command,
+    "rhinoscript4": rhinoscript4_command,
     "content": content_command,
     "business": business_command,
     "customer": customer_command,
@@ -62,7 +64,7 @@ def build_bot() -> commands.Bot:
         await ctx.reply(
             "**PTR AI Jewelry Agent Commands**\n"
             f"{command_list}\n\n"
-            "Flow: !cadbrief → !cadcheck → !rhinoscript → !rhinoscript2 → !rhinoscript3"
+            "Flow: !cadbrief → !cadcheck → !rhinoscript → !rhinoscript2 → !rhinoscript3 → !rhinoscript4"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
