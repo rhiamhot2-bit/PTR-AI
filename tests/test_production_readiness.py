@@ -12,6 +12,7 @@ class ProductionReadinessTests(unittest.TestCase):
     def test_script_is_report_only_and_blocks_production_export(self) -> None:
         script = build_production_readiness_script(Path("C:/PTR/production.json"))
         compile(script, "<production-readiness>", "exec")
+        self.assertTrue(script.startswith("# -*- coding: utf-8 -*-"))
         self.assertIn("NOT_PRODUCTION_READY", script)
         self.assertIn("MANUAL_REVIEW_REQUIRED", script)
         self.assertIn("production_export_allowed", script)
