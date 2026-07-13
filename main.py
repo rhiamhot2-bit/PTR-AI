@@ -15,6 +15,7 @@ from commands.customer import customer_command
 from commands.design import design_command
 from commands.findcustomer import findcustomer_command
 from commands.project import project_command
+from commands.cadproduction import cadproduction_command
 from commands.rhino import rhino_command
 from commands.rhinoscript import rhinoscript_command
 from commands.rhinoscript2 import rhinoscript2_command
@@ -30,6 +31,7 @@ COMMAND_HANDLERS = {
     "design": design_command,
     "cadbrief": cadbrief_command,
     "cadcheck": cadcheck_command,
+    "cadproduction": cadproduction_command,
     "rhinoscript": rhinoscript_command,
     "rhinoscript2": rhinoscript2_command,
     "rhinoscript3": rhinoscript3_command,
@@ -64,7 +66,7 @@ def build_bot() -> commands.Bot:
         await ctx.reply(
             "**PTR AI Jewelry Agent Commands**\n"
             f"{command_list}\n\n"
-            "Flow: !cadbrief → !cadcheck → !rhinoscript → !rhinoscript2 → !rhinoscript3 → !rhinoscript4"
+            "Flow: !cadbrief → !cadcheck → !rhinoscript → !rhinoscript2 → !rhinoscript3 → !rhinoscript4 → !cadproduction"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
