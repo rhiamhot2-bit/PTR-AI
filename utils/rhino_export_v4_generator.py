@@ -76,10 +76,31 @@ def production_audit(objects):
     guarded_export = f'''
         # Strict RhinoCommon audit and guarded unique-file export.
         can_export, audit_rows = production_audit(created)
+        export_saved = False
+        export_error = None
+        if can_export:
+            export_folder = os.path.dirname(r"{output_3dm_text}")
+            if export_folder and not os.path.exists(export_folder):
+                os.makedirs(export_folder)
+            try:
+                write_options = Rhino.FileIO.FileWriteOptions()
+                write_succeeded = bool(
+                    sc.doc.Write3dmFile(r"{output_3dm_text}", write_options)
+                )
+                export_saved = bool(
+                    write_succeeded and os.path.isfile(r"{output_3dm_text}")
+                )
+                if not export_saved:
+                    export_error = "Rhino returned no saved file"
+            except Exception as exc:
+                export_error = str(exc)
+
         audit_payload = {{
             "generator": "{GENERATOR_VERSION}",
             "ruleset": "{report["ruleset_version"]}",
             "can_export_3dm": can_export,
+            "export_saved": export_saved,
+            "export_error": export_error,
             "objects": audit_rows,
             "output_3dm": r"{output_3dm_text}",
         }}
@@ -89,12 +110,14 @@ def production_audit(objects):
         with io.open(r"{output_json_text}", "w", encoding="utf-8") as audit_file:
             json.dump(audit_payload, audit_file, ensure_ascii=False, indent=2)
 
-        if can_export:
-            export_folder = os.path.dirname(r"{output_3dm_text}")
-            if export_folder and not os.path.exists(export_folder):
-                os.makedirs(export_folder)
-            rs.Command('_-SaveAs "' + r"{output_3dm_text}" + '" _Enter', False)
+        if export_saved:
             print("V4 EXPORT SAVED | {output_3dm_text}")
+        elif can_export:
+            print(
+                "V4 EXPORT FAILED | "
+                + (export_error or "unknown write failure")
+                + " | inspect audit JSON: {output_json_text}"
+            )
         else:
             print("V4 EXPORT BLOCKED | inspect audit JSON: {output_json_text}")
 '''
