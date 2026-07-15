@@ -13,7 +13,7 @@ class SafeBooleanTrialGeneratorTests(unittest.TestCase):
     def test_script_is_staged_and_non_destructive(self):
         script = build_safe_boolean_trial_script(Path("boolean_trial.json"))
         compile(script, "<safe-boolean-trial>", "exec")
-        self.assertEqual(GENERATOR_VERSION, "ptr-safe-boolean-trial-v1")
+        self.assertEqual(GENERATOR_VERSION, "ptr-safe-boolean-trial-v2")
         self.assertIn("CreateBooleanUnion", script)
         self.assertIn('"BAND_SHOULDERS"', script)
         self.assertIn('"SETTING_METAL"', script)
@@ -21,6 +21,19 @@ class SafeBooleanTrialGeneratorTests(unittest.TestCase):
         self.assertIn("DuplicateBrep", script)
         self.assertNotIn("DeleteObject", script)
         self.assertNotIn("ExportSelected", script)
+
+    def test_script_reports_contact_graph_and_nearest_pairs(self):
+        script = build_safe_boolean_trial_script(Path("boolean_trial.json"))
+        self.assertIn("Intersection.BrepBrep", script)
+        self.assertIn('"connected_groups"', script)
+        self.assertIn('"nearest_pairs"', script)
+        self.assertIn("DISCONNECTED GROUP", script)
+        self.assertIn("NEAREST PAIR", script)
+
+    def test_script_does_not_force_union_with_large_tolerance(self):
+        script = build_safe_boolean_trial_script(Path("boolean_trial.json"))
+        self.assertNotIn("tolerance * 10", script)
+        self.assertIn("ห้ามเพิ่ม Boolean tolerance", script)
 
     def test_script_excludes_references_and_validates_results(self):
         script = build_safe_boolean_trial_script(Path("boolean_trial.json"))
