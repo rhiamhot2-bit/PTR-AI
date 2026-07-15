@@ -13,10 +13,13 @@ class ShoulderGeometryGeneratorTests(unittest.TestCase):
         script = build_shoulder_geometry_script(Path("C:/PTR/shoulder-build.json"))
         compile(script, "<shoulder-geometry>", "exec")
         self.assertTrue(script.startswith("# -*- coding: utf-8 -*-"))
-        self.assertIn("ptr-shoulder-geometry-v1", script)
+        self.assertIn("ptr-shoulder-geometry-v2", script)
         self.assertIn("PTR_SHOULDER_LEFT", script)
         self.assertIn("PTR_SHOULDER_RIGHT", script)
         self.assertIn("rs.AddPipe", script)
+        self.assertIn("rs.AddInterpCurve", script)
+        self.assertIn('"STONE_SEAT" in item["upper"]', script)
+        self.assertIn("band_surface_z", script)
         self.assertIn("SHOULDER_GEOMETRY_REVIEW_REQUIRED", script)
 
     def test_script_preserves_production_safety_boundary(self) -> None:
