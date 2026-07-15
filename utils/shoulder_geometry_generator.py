@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-GENERATOR_VERSION = "ptr-shoulder-geometry-v2"
+GENERATOR_VERSION = "ptr-shoulder-geometry-v3"
 
 
 def build_shoulder_geometry_script(output_report_json: Path) -> str:
@@ -14,7 +14,7 @@ def build_shoulder_geometry_script(output_report_json: Path) -> str:
     output_text = str(output_report_json).replace("\\", "/")
     template = r'''# -*- coding: utf-8 -*-
 # PTR JEW3D Rhino 8 Shoulder Geometry Generator
-# Generator: ptr-shoulder-geometry-v2
+# Generator: ptr-shoulder-geometry-v3
 # REVIEW ONLY: creates separate shoulder solids; never Boolean-unions or exports.
 import io
 import json
@@ -25,14 +25,18 @@ import scriptcontext as sc
 import rhinoscriptsyntax as rs
 
 OUTPUT_REPORT = r"__OUTPUT_REPORT__"
-GENERATOR = "ptr-shoulder-geometry-v2"
+GENERATOR = "ptr-shoulder-geometry-v3"
 LAYER_NAME = "PTR_SHOULDER_REVIEW"
 LEFT_NAME = "PTR_SHOULDER_LEFT"
 RIGHT_NAME = "PTR_SHOULDER_RIGHT"
 SETTING_MARKERS = ("STONE_SEAT", "PRONG", "BASKET_SUPPORT", "PRODUCTION_METAL")
-MIN_OVERLAP_MM = 0.30
-SHOULDER_WIDTH_MM = 1.60
-SHOULDER_THICKNESS_MM = 1.20
+MIN_OVERLAP_MM = 0.35
+BASE_RADIUS_MM = 0.72
+LOWER_RADIUS_MM = 0.66
+UPPER_RADIUS_MM = 0.57
+TOP_RADIUS_MM = 0.50
+LOWER_OUTWARD_BOW_MM = 0.32
+UPPER_INWARD_EASE_MM = 0.14
 
 
 def object_brep(obj_id):
@@ -109,7 +113,9 @@ def main():
                 ("LEFT", LEFT_NAME, -1.0),
                 ("RIGHT", RIGHT_NAME, 1.0),
             ):
-                start_offset = min(max(target_half_width * 0.62, 1.80), band_radius_x * 0.42)
+                # Place the band anchor wider than v2, then ease inward toward the seat.
+                # This produces a flared base and avoids a straight vertical shoulder.
+                start_offset = min(max(target_half_width * 0.78, 2.20), band_radius_x * 0.48)
                 start_x = band_center_x + direction * start_offset
                 normalized_x = min(abs(start_offset / band_radius_x), 0.98)
                 band_surface_z = band_center_z + band_radius_z * math.sqrt(max(0.0, 1.0 - normalized_x ** 2))
@@ -124,25 +130,35 @@ def main():
                     target_box.Min.Z + MIN_OVERLAP_MM,
                 )
                 rise = end.Z - start.Z
-                if rise <= SHOULDER_THICKNESS_MM * 0.75:
+                if rise <= BASE_RADIUS_MM * 1.50:
                     raise RuntimeError("ระยะจากก้านแหวนถึงฐานกระเปาะสั้นเกินไปสำหรับสร้าง shoulder")
+                lateral_delta = end.X - start.X
                 control_1 = Rhino.Geometry.Point3d(
-                    start.X + direction * 0.35,
+                    start.X + direction * LOWER_OUTWARD_BOW_MM,
                     center_y,
-                    start.Z + rise * 0.34,
+                    start.Z + rise * 0.20,
                 )
                 control_2 = Rhino.Geometry.Point3d(
-                    end.X - direction * 0.18,
+                    start.X + lateral_delta * 0.42 + direction * LOWER_OUTWARD_BOW_MM * 0.45,
                     center_y,
-                    end.Z - rise * 0.24,
+                    start.Z + rise * 0.48,
                 )
-                axis = rs.AddInterpCurve([start, control_1, control_2, end], degree=3, knotstyle=0)
+                control_3 = Rhino.Geometry.Point3d(
+                    end.X - lateral_delta * 0.18 - direction * UPPER_INWARD_EASE_MM,
+                    center_y,
+                    end.Z - rise * 0.20,
+                )
+                axis = rs.AddInterpCurve(
+                    [start, control_1, control_2, control_3, end],
+                    degree=3,
+                    knotstyle=0,
+                )
                 shoulder = None
                 if axis:
                     shoulder = rs.AddPipe(
                         axis,
-                        [0.0, 1.0],
-                        [SHOULDER_WIDTH_MM / 2.0, SHOULDER_THICKNESS_MM / 2.0],
+                        [0.0, 0.28, 0.72, 1.0],
+                        [BASE_RADIUS_MM, LOWER_RADIUS_MM, UPPER_RADIUS_MM, TOP_RADIUS_MM],
                         blend_type=1,
                         cap=2,
                         fit=True,
@@ -157,9 +173,19 @@ def main():
                     "name": object_name,
                     "band_anchor": point_data(start),
                     "setting_anchor": point_data(end),
-                    "control_points": [point_data(control_1), point_data(control_2)],
-                    "width_mm": SHOULDER_WIDTH_MM,
-                    "thickness_mm": SHOULDER_THICKNESS_MM,
+                    "control_points": [
+                        point_data(control_1),
+                        point_data(control_2),
+                        point_data(control_3),
+                    ],
+                    "profile_radii_mm": [
+                        BASE_RADIUS_MM,
+                        LOWER_RADIUS_MM,
+                        UPPER_RADIUS_MM,
+                        TOP_RADIUS_MM,
+                    ],
+                    "band_anchor_in_bbox": bool(band_box.Contains(start)),
+                    "setting_anchor_in_bbox": bool(target_box.Contains(end)),
                     "closed_solid": bool(rs.IsObjectSolid(shoulder)),
                     "requires_manual_review": True,
                 })
@@ -184,6 +210,12 @@ def main():
         "setting_parts": [item["name"] for item in setting_parts],
         "bridges": bridges,
         "blockers": blockers,
+        "profile": {
+            "base_diameter_mm": BASE_RADIUS_MM * 2.0,
+            "top_diameter_mm": TOP_RADIUS_MM * 2.0,
+            "curve_control_count": 5,
+            "minimum_anchor_overlap_mm": MIN_OVERLAP_MM,
+        },
         "warnings": warnings,
     }
     folder = os.path.dirname(OUTPUT_REPORT)
