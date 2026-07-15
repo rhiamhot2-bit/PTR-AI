@@ -8,6 +8,7 @@ from discord.ext import commands
 
 from commands.automation import automation_command
 from commands.business import business_command
+from commands.cadbooleantrial import cadbooleantrial_command
 from commands.cadbrief import cadbrief_command
 from commands.cadcheck import cadcheck_command
 from commands.cadjoinplan import cadjoinplan_command
@@ -40,6 +41,7 @@ COMMAND_HANDLERS = {
     "cadshoulderplan": cadshoulderplan_command,
     "cadshoulderbuild": cadshoulderbuild_command,
     "cadshoulderloft4": cadshoulderloft4_command,
+    "cadbooleantrial": cadbooleantrial_command,
     "rhinoscript": rhinoscript_command,
     "rhinoscript2": rhinoscript2_command,
     "rhinoscript3": rhinoscript3_command,
@@ -61,7 +63,7 @@ def build_bot() -> commands.Bot:
     intents = discord.Intents.default()
     intents.message_content = True
     bot = commands.Bot(command_prefix=config.command_prefix, intents=intents, help_command=None)
-    bot.ptr_config = config  # type: ignore[attr-defined]
+    bot.ptr_config = config
 
     @bot.event
     async def on_ready() -> None:
@@ -75,7 +77,8 @@ def build_bot() -> commands.Bot:
             f"{command_list}\n\n"
             "Flow: !cadbrief → !cadcheck → !rhinoscript → !rhinoscript2 → "
             "!rhinoscript3 → !rhinoscript4 → !cadproduction → !cadjoinplan → "
-            "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4"
+            "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → "
+            "!cadbooleantrial"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
