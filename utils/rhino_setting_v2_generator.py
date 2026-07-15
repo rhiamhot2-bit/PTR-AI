@@ -32,8 +32,11 @@ def build_rhino_setting_v2_script(report: dict[str, Any]) -> str:
     minor_r = shank_t / 2.0
     seat_y = major_r + minor_r + max(1.0, head_h - depth / 2.0)
     stone_y = seat_y + depth / 2.0
-    prong_x = max(0.5, length / 2.0 - prong_d / 2.0)
-    prong_z = max(0.5, width / 2.0 - prong_d / 2.0)
+    seat_rx = length / 2.0 + clearance
+    seat_rz = width / 2.0 + clearance
+    seat_contact_factor = 1.0 / math.sqrt(2.0)
+    prong_x = seat_rx * seat_contact_factor
+    prong_z = seat_rz * seat_contact_factor
     prong_bottom = seat_y - 0.8
     prong_top = stone_y + depth / 2.0 + 0.6
     support_bottom_y = major_r + minor_r * 0.6
@@ -77,8 +80,8 @@ def main():
         seat_plane = rs.PlaneFromNormal((0, {seat_y:.6f}, 0), (0, 1, 0))
         seat_curve = rs.AddEllipse(
             seat_plane,
-            {length / 2.0 + clearance:.6f},
-            {width / 2.0 + clearance:.6f},
+            {seat_rx:.6f},
+            {seat_rz:.6f},
         )
         seat = rs.AddPipe(seat_curve, 0, {max(0.35, prong_d / 2.0):.6f}, 2, 2)
         rs.DeleteObject(seat_curve)
@@ -86,6 +89,8 @@ def main():
             rs.ObjectName(seat, "PTR_OVAL_STONE_SEAT_CONCEPT")
             created.append(seat)
 
+        # Put each prong centerline on the oval seat centerline. Its base then
+        # overlaps the seat pipe instead of floating at a bounding-box corner.
         prong_points = [
             (-{prong_x:.6f}, -{prong_z:.6f}),
             (-{prong_x:.6f}, {prong_z:.6f}),
