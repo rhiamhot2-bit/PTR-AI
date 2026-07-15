@@ -22,8 +22,9 @@ async def cadshoulderbuild_command(
     save_shoulder_geometry_script(script_path, script)
 
     await ctx.reply(
-        "🧩 สร้าง Shoulder Geometry Generator รุ่นแรกแล้ว\n"
-        "รันใน Rhino ที่เปิดโมเดล v4 อยู่ ระบบจะสร้างไหล่ซ้าย–ขวาเป็นชิ้นแยกบน layer PTR_SHOULDER_REVIEW\n"
+        "🧩 สร้าง Shoulder Geometry Generator v2 แล้ว\n"
+        "รันใน Rhino ที่เปิดโมเดล v4 อยู่ ระบบจะสร้างไหล่โค้งจากก้านแหวนขึ้นถึงฐานกระเปาะ\n"
+        "ชิ้นซ้าย–ขวายังคงแยกกันบน layer PTR_SHOULDER_REVIEW\n"
         "ไม่มี Boolean, ไม่ลบหรือขยับชิ้นงานเดิม และไม่มี Production Export\n"
         f"Shoulder Build JSON: {report_path}",
         file=discord.File(Path(script_path)),
