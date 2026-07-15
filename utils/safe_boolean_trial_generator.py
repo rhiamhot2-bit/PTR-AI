@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-GENERATOR_VERSION = "ptr-safe-boolean-trial-v1"
+GENERATOR_VERSION = "ptr-safe-boolean-trial-v2"
 
 
 def prepare_safe_boolean_trial_paths(memory_root: Path) -> tuple[Path, Path]:
@@ -67,6 +67,70 @@ def validate_brep(brep):
     }}
 
 
+def bbox_gap(a, b):
+    box_a = a.GetBoundingBox(True)
+    box_b = b.GetBoundingBox(True)
+    dx = max(0.0, box_a.Min.X - box_b.Max.X, box_b.Min.X - box_a.Max.X)
+    dy = max(0.0, box_a.Min.Y - box_b.Max.Y, box_b.Min.Y - box_a.Max.Y)
+    dz = max(0.0, box_a.Min.Z - box_b.Max.Z, box_b.Min.Z - box_a.Max.Z)
+    return (dx * dx + dy * dy + dz * dz) ** 0.5
+
+
+def breps_touch(a, b, tolerance):
+    try:
+        hit, curves, points = Rhino.Geometry.Intersect.Intersection.BrepBrep(
+            a, b, tolerance
+        )
+        return bool(hit and ((curves and len(curves)) or (points and len(points))))
+    except Exception:
+        return False
+
+
+def contact_diagnostics(rows, tolerance):
+    count = len(rows)
+    adjacency = [set() for _ in range(count)]
+    contacts = []
+    nearest = []
+    for left in range(count):
+        for right in range(left + 1, count):
+            gap = bbox_gap(rows[left]["brep"], rows[right]["brep"])
+            touching = breps_touch(rows[left]["brep"], rows[right]["brep"], tolerance)
+            pair = {{
+                "left": rows[left]["name"],
+                "right": rows[right]["name"],
+                "bbox_gap_mm": round(gap, 6),
+                "intersects": touching,
+            }}
+            nearest.append(pair)
+            if touching:
+                adjacency[left].add(right)
+                adjacency[right].add(left)
+                contacts.append(pair)
+
+    groups = []
+    unseen = set(range(count))
+    while unseen:
+        seed = unseen.pop()
+        stack = [seed]
+        component = [seed]
+        while stack:
+            current = stack.pop()
+            for neighbor in adjacency[current]:
+                if neighbor in unseen:
+                    unseen.remove(neighbor)
+                    stack.append(neighbor)
+                    component.append(neighbor)
+        groups.append([rows[index]["name"] for index in component])
+
+    nearest.sort(key=lambda item: item["bbox_gap_mm"])
+    return {{
+        "contact_pairs": contacts,
+        "connected_groups": groups,
+        "connected_group_count": len(groups),
+        "nearest_pairs": nearest[:10],
+    }}
+
+
 def collect_sources():
     rows = []
     for obj_id in rs.AllObjects() or []:
@@ -88,8 +152,10 @@ def add_review_brep(brep, name):
     return obj_id
 
 
-def run_union(label, inputs, tolerance):
+def run_union(label, rows, tolerance):
+    inputs = [row["brep"] for row in rows]
     report = {{"stage": label, "input_count": len(inputs), "passed": False}}
+    report.update(contact_diagnostics(rows, tolerance))
     if len(inputs) < 2:
         report["error"] = "ต้องมีอย่างน้อย 2 ชิ้นสำหรับ Boolean Union"
         return None, report
@@ -103,6 +169,10 @@ def run_union(label, inputs, tolerance):
     report["result_count"] = len(results) if results else 0
     if not results or len(results) != 1:
         report["error"] = "Boolean ต้องคืนผลลัพธ์ Closed Solid เพียง 1 ชิ้น"
+        report["recommended_action"] = (
+            "ตรวจ connected_groups และ nearest_pairs แล้วเพิ่ม overlap เฉพาะจุดเชื่อม "
+            "ก่อนทดลองใหม่ ห้ามเพิ่ม Boolean tolerance เพื่อบังคับให้ผ่าน"
+        )
         return None, report
     result = results[0]
     report.update(validate_brep(result))
@@ -129,7 +199,7 @@ def main():
         ]
         for row in selected:
             add_review_brep(row["brep"], "PTR_BOOLEAN_TRIAL_SOURCE_" + row["name"])
-        result, report = run_union(label, [row["brep"] for row in selected], tolerance)
+        result, report = run_union(label, selected, tolerance)
         report["source_names"] = [row["name"] for row in selected]
         reports.append(report)
         if result:
@@ -138,7 +208,11 @@ def main():
     final_result = None
     final_report = {{"stage": "FINAL_ASSEMBLY", "passed": False}}
     if len(stage_results) == len(STAGES):
-        final_result, final_report = run_union("FINAL_ASSEMBLY", stage_results, tolerance)
+        final_rows = [
+            {{"name": reports[index]["stage"], "brep": stage_results[index]}}
+            for index in range(len(stage_results))
+        ]
+        final_result, final_report = run_union("FINAL_ASSEMBLY", final_rows, tolerance)
     else:
         final_report["error"] = "หยุดก่อน Final Boolean เพราะมี Stage ไม่ผ่าน"
     reports.append(final_report)
@@ -168,6 +242,13 @@ def main():
         ))
         if report.get("error"):
             print("BLOCKER | " + report["error"])
+        if report.get("connected_group_count", 0) > 1:
+            for index, group in enumerate(report["connected_groups"], 1):
+                print("DISCONNECTED GROUP {0} | {1}".format(index, ", ".join(group)))
+            for pair in report.get("nearest_pairs", [])[:5]:
+                print("NEAREST PAIR | {0} <-> {1} | bbox_gap_mm={2}".format(
+                    pair["left"], pair["right"], pair["bbox_gap_mm"]
+                ))
     print("SOURCE GEOMETRY MODIFIED | NO")
     print("PRODUCTION EXPORT | BLOCKED")
     print("BOOLEAN TRIAL JSON | " + OUTPUT_AUDIT)
