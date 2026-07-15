@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-GENERATOR_VERSION = "ptr-shoulder-geometry-v1"
+GENERATOR_VERSION = "ptr-shoulder-geometry-v2"
 
 
 def build_shoulder_geometry_script(output_report_json: Path) -> str:
@@ -14,7 +14,7 @@ def build_shoulder_geometry_script(output_report_json: Path) -> str:
     output_text = str(output_report_json).replace("\\", "/")
     template = r'''# -*- coding: utf-8 -*-
 # PTR JEW3D Rhino 8 Shoulder Geometry Generator
-# Generator: ptr-shoulder-geometry-v1
+# Generator: ptr-shoulder-geometry-v2
 # REVIEW ONLY: creates separate shoulder solids; never Boolean-unions or exports.
 import io
 import json
@@ -25,7 +25,7 @@ import scriptcontext as sc
 import rhinoscriptsyntax as rs
 
 OUTPUT_REPORT = r"__OUTPUT_REPORT__"
-GENERATOR = "ptr-shoulder-geometry-v1"
+GENERATOR = "ptr-shoulder-geometry-v2"
 LAYER_NAME = "PTR_SHOULDER_REVIEW"
 LEFT_NAME = "PTR_SHOULDER_LEFT"
 RIGHT_NAME = "PTR_SHOULDER_RIGHT"
@@ -68,7 +68,7 @@ def main():
         brep = object_brep(obj_id)
         if not brep:
             continue
-        item = {"name": name, "box": brep.GetBoundingBox(True)}
+        item = {"name": name, "upper": upper, "box": brep.GetBoundingBox(True)}
         if "RING_BAND" in upper and band is None:
             band = item
         elif any(marker in upper for marker in SETTING_MARKERS):
@@ -89,15 +89,17 @@ def main():
     if not blockers:
         band_box = band["box"]
         setting_box = union_box([item["box"] for item in setting_parts])
-        center_x = (setting_box.Min.X + setting_box.Max.X) / 2.0
-        center_y = (setting_box.Min.Y + setting_box.Max.Y) / 2.0
-        setting_width = setting_box.Max.X - setting_box.Min.X
-        offset = max(setting_width * 0.38, SHOULDER_WIDTH_MM)
-        start_z = band_box.Max.Z - MIN_OVERLAP_MM
-        end_z = setting_box.Min.Z + MIN_OVERLAP_MM
-        if end_z <= start_z:
-            end_z = start_z + max(MIN_OVERLAP_MM * 2.0, sc.doc.ModelAbsoluteTolerance * 4.0)
-            warnings.append("Bounding boxes overlap; a minimum review bridge length was used.")
+        seat_parts = [item for item in setting_parts if "STONE_SEAT" in item["upper"]]
+        target_box = union_box([item["box"] for item in seat_parts]) if seat_parts else setting_box
+        center_x = (target_box.Min.X + target_box.Max.X) / 2.0
+        center_y = (target_box.Min.Y + target_box.Max.Y) / 2.0
+        band_center_x = (band_box.Min.X + band_box.Max.X) / 2.0
+        band_center_z = (band_box.Min.Z + band_box.Max.Z) / 2.0
+        band_radius_x = (band_box.Max.X - band_box.Min.X) / 2.0
+        band_radius_z = (band_box.Max.Z - band_box.Min.Z) / 2.0
+        target_half_width = (target_box.Max.X - target_box.Min.X) / 2.0
+        if band_radius_x <= 0.0 or band_radius_z <= 0.0 or target_half_width <= MIN_OVERLAP_MM:
+            blockers.append("Bounding box ของก้านแหวนหรือฐานกระเปาะไม่สมบูรณ์")
 
         previous_layer = rs.CurrentLayer()
         undo_id = sc.doc.BeginUndoRecord("PTR shoulder review geometry")
@@ -107,16 +109,40 @@ def main():
                 ("LEFT", LEFT_NAME, -1.0),
                 ("RIGHT", RIGHT_NAME, 1.0),
             ):
-                x = center_x + direction * offset
-                start = Rhino.Geometry.Point3d(x, center_y, start_z)
-                end = Rhino.Geometry.Point3d(x, center_y, end_z)
-                axis = rs.AddLine(start, end)
+                start_offset = min(max(target_half_width * 0.62, 1.80), band_radius_x * 0.42)
+                start_x = band_center_x + direction * start_offset
+                normalized_x = min(abs(start_offset / band_radius_x), 0.98)
+                band_surface_z = band_center_z + band_radius_z * math.sqrt(max(0.0, 1.0 - normalized_x ** 2))
+                start = Rhino.Geometry.Point3d(
+                    start_x,
+                    center_y,
+                    band_surface_z - MIN_OVERLAP_MM,
+                )
+                end = Rhino.Geometry.Point3d(
+                    center_x + direction * max(target_half_width - MIN_OVERLAP_MM, 0.80),
+                    center_y,
+                    target_box.Min.Z + MIN_OVERLAP_MM,
+                )
+                rise = end.Z - start.Z
+                if rise <= SHOULDER_THICKNESS_MM * 0.75:
+                    raise RuntimeError("ระยะจากก้านแหวนถึงฐานกระเปาะสั้นเกินไปสำหรับสร้าง shoulder")
+                control_1 = Rhino.Geometry.Point3d(
+                    start.X + direction * 0.35,
+                    center_y,
+                    start.Z + rise * 0.34,
+                )
+                control_2 = Rhino.Geometry.Point3d(
+                    end.X - direction * 0.18,
+                    center_y,
+                    end.Z - rise * 0.24,
+                )
+                axis = rs.AddInterpCurve([start, control_1, control_2, end], degree=3, knotstyle=0)
                 shoulder = None
                 if axis:
                     shoulder = rs.AddPipe(
                         axis,
                         [0.0, 1.0],
-                        [SHOULDER_THICKNESS_MM / 2.0, SHOULDER_THICKNESS_MM / 2.0],
+                        [SHOULDER_WIDTH_MM / 2.0, SHOULDER_THICKNESS_MM / 2.0],
                         blend_type=1,
                         cap=2,
                         fit=True,
@@ -131,6 +157,7 @@ def main():
                     "name": object_name,
                     "band_anchor": point_data(start),
                     "setting_anchor": point_data(end),
+                    "control_points": [point_data(control_1), point_data(control_2)],
                     "width_mm": SHOULDER_WIDTH_MM,
                     "thickness_mm": SHOULDER_THICKNESS_MM,
                     "closed_solid": bool(rs.IsObjectSolid(shoulder)),
