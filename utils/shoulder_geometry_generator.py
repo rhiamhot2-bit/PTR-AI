@@ -6,15 +6,15 @@ from datetime import datetime
 from pathlib import Path
 
 
-GENERATOR_VERSION = "ptr-shoulder-geometry-v3"
+GENERATOR_VERSION = "ptr-shoulder-loft-v4"
 
 
 def build_shoulder_geometry_script(output_report_json: Path) -> str:
     """Return a Rhino 8 script that creates separate shoulder review geometry."""
     output_text = str(output_report_json).replace("\\", "/")
     template = r'''# -*- coding: utf-8 -*-
-# PTR JEW3D Rhino 8 Shoulder Geometry Generator
-# Generator: ptr-shoulder-geometry-v3
+# PTR JEW3D Rhino 8 Shoulder Loft Generator
+# Generator: ptr-shoulder-loft-v4
 # REVIEW ONLY: creates separate shoulder solids; never Boolean-unions or exports.
 import io
 import json
@@ -25,16 +25,16 @@ import scriptcontext as sc
 import rhinoscriptsyntax as rs
 
 OUTPUT_REPORT = r"__OUTPUT_REPORT__"
-GENERATOR = "ptr-shoulder-geometry-v3"
+GENERATOR = "ptr-shoulder-loft-v4"
 LAYER_NAME = "PTR_SHOULDER_REVIEW"
 LEFT_NAME = "PTR_SHOULDER_LEFT"
 RIGHT_NAME = "PTR_SHOULDER_RIGHT"
 SETTING_MARKERS = ("STONE_SEAT", "PRONG", "BASKET_SUPPORT", "PRODUCTION_METAL")
 MIN_OVERLAP_MM = 0.35
-BASE_RADIUS_MM = 0.72
-LOWER_RADIUS_MM = 0.66
-UPPER_RADIUS_MM = 0.57
-TOP_RADIUS_MM = 0.50
+MIN_CLEARANCE_MM = 0.30
+SECTION_STATIONS = (0.0, 0.25, 0.50, 0.75, 1.0)
+WIDTH_RADII_MM = (0.82, 0.78, 0.68, 0.58, 0.50)
+DEPTH_RADII_MM = (0.52, 0.50, 0.46, 0.42, 0.38)
 LOWER_OUTWARD_BOW_MM = 0.32
 UPPER_INWARD_EASE_MM = 0.14
 
@@ -61,6 +61,13 @@ def ensure_layer():
 
 def point_data(point):
     return {"x": round(point.X, 4), "y": round(point.Y, 4), "z": round(point.Z, 4)}
+
+
+def bbox_gap_mm(first, second):
+    dx = max(first.Min.X - second.Max.X, second.Min.X - first.Max.X, 0.0)
+    dy = max(first.Min.Y - second.Max.Y, second.Min.Y - first.Max.Y, 0.0)
+    dz = max(first.Min.Z - second.Max.Z, second.Min.Z - first.Max.Z, 0.0)
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
 
 
 def main():
@@ -95,6 +102,10 @@ def main():
         setting_box = union_box([item["box"] for item in setting_parts])
         seat_parts = [item for item in setting_parts if "STONE_SEAT" in item["upper"]]
         target_box = union_box([item["box"] for item in seat_parts]) if seat_parts else setting_box
+        clearance_parts = [
+            item for item in setting_parts
+            if "PRONG" in item["upper"] or "BASKET_SUPPORT" in item["upper"]
+        ]
         center_x = (target_box.Min.X + target_box.Max.X) / 2.0
         center_y = (target_box.Min.Y + target_box.Max.Y) / 2.0
         band_center_x = (band_box.Min.X + band_box.Max.X) / 2.0
@@ -130,7 +141,7 @@ def main():
                     target_box.Min.Z + MIN_OVERLAP_MM,
                 )
                 rise = end.Z - start.Z
-                if rise <= BASE_RADIUS_MM * 1.50:
+                if rise <= WIDTH_RADII_MM[0] * 1.50:
                     raise RuntimeError("ระยะจากก้านแหวนถึงฐานกระเปาะสั้นเกินไปสำหรับสร้าง shoulder")
                 lateral_delta = end.X - start.X
                 control_1 = Rhino.Geometry.Point3d(
@@ -155,19 +166,70 @@ def main():
                 )
                 shoulder = None
                 if axis:
-                    shoulder = rs.AddPipe(
-                        axis,
-                        [0.0, 0.28, 0.72, 1.0],
-                        [BASE_RADIUS_MM, LOWER_RADIUS_MM, UPPER_RADIUS_MM, TOP_RADIUS_MM],
-                        blend_type=1,
-                        cap=2,
-                        fit=True,
+                    axis_curve = rs.coercecurve(axis)
+                    parameters = axis_curve.DivideByCount(len(SECTION_STATIONS) - 1, True)
+                    section_curves = []
+                    if not parameters or len(parameters) != len(SECTION_STATIONS):
+                        raise RuntimeError("แบ่งแนวแกน shoulder เป็นหน้าตัดไม่สำเร็จ")
+                    for index, parameter in enumerate(parameters):
+                        section_point = axis_curve.PointAt(parameter)
+                        tangent = axis_curve.TangentAt(parameter)
+                        if not tangent.Unitize():
+                            raise RuntimeError("หาแนวสัมผัสสำหรับหน้าตัด shoulder ไม่สำเร็จ")
+                        depth_axis = Rhino.Geometry.Vector3d.YAxis
+                        width_axis = Rhino.Geometry.Vector3d.CrossProduct(tangent, depth_axis)
+                        if not width_axis.Unitize():
+                            raise RuntimeError("สร้างระนาบหน้าตัด shoulder ไม่สำเร็จ")
+                        plane = Rhino.Geometry.Plane(section_point, depth_axis, width_axis)
+                        ellipse = Rhino.Geometry.Ellipse(
+                            plane,
+                            DEPTH_RADII_MM[index],
+                            WIDTH_RADII_MM[index],
+                        )
+                        section_curves.append(ellipse.ToNurbsCurve())
+                    lofts = Rhino.Geometry.Brep.CreateFromLoft(
+                        section_curves,
+                        Rhino.Geometry.Point3d.Unset,
+                        Rhino.Geometry.Point3d.Unset,
+                        Rhino.Geometry.LoftType.Normal,
+                        False,
                     )
+                    if not lofts:
+                        raise RuntimeError("Loft shoulder " + side + " ไม่สำเร็จ")
+                    joined = Rhino.Geometry.Brep.JoinBreps(
+                        lofts, sc.doc.ModelAbsoluteTolerance
+                    )
+                    loft = joined[0] if joined else lofts[0]
+                    capped = loft.CapPlanarHoles(sc.doc.ModelAbsoluteTolerance)
+                    if capped:
+                        loft = capped
+                    if not loft.IsSolid:
+                        raise RuntimeError("Loft shoulder " + side + " ยังไม่เป็น closed solid")
+                    shoulder = sc.doc.Objects.AddBrep(loft)
                     rs.DeleteObject(axis)
                 if not shoulder:
                     raise RuntimeError("สร้าง shoulder " + side + " ไม่สำเร็จ")
                 rs.ObjectName(shoulder, object_name)
                 created.append(shoulder)
+                shoulder_brep = object_brep(shoulder)
+                shoulder_box = shoulder_brep.GetBoundingBox(True)
+                clearance_checks = []
+                for item in clearance_parts:
+                    gap = bbox_gap_mm(shoulder_box, item["box"])
+                    clearance_checks.append({
+                        "object": item["name"],
+                        "bbox_gap_mm": round(gap, 4),
+                        "passes_target": bool(gap >= MIN_CLEARANCE_MM),
+                    })
+                minimum_clearance = min(
+                    [check["bbox_gap_mm"] for check in clearance_checks]
+                ) if clearance_checks else None
+                if minimum_clearance is not None and minimum_clearance < MIN_CLEARANCE_MM:
+                    warnings.append(
+                        side + " shoulder has conservative bounding-box clearance below "
+                        + str(MIN_CLEARANCE_MM)
+                        + " mm; inspect true surfaces in Rhino."
+                    )
                 bridges.append({
                     "side": side,
                     "name": object_name,
@@ -178,12 +240,18 @@ def main():
                         point_data(control_2),
                         point_data(control_3),
                     ],
-                    "profile_radii_mm": [
-                        BASE_RADIUS_MM,
-                        LOWER_RADIUS_MM,
-                        UPPER_RADIUS_MM,
-                        TOP_RADIUS_MM,
+                    "construction_method": "elliptical_section_loft",
+                    "section_stations": list(SECTION_STATIONS),
+                    "section_width_diameters_mm": [
+                        round(radius * 2.0, 4) for radius in WIDTH_RADII_MM
                     ],
+                    "section_depth_diameters_mm": [
+                        round(radius * 2.0, 4) for radius in DEPTH_RADII_MM
+                    ],
+                    "clearance_method": "bounding_box_conservative",
+                    "minimum_clearance_target_mm": MIN_CLEARANCE_MM,
+                    "minimum_clearance_bbox_mm": minimum_clearance,
+                    "clearance_checks": clearance_checks,
                     "band_anchor_in_bbox": bool(band_box.Contains(start)),
                     "setting_anchor_in_bbox": bool(target_box.Contains(end)),
                     "closed_solid": bool(rs.IsObjectSolid(shoulder)),
@@ -211,10 +279,15 @@ def main():
         "bridges": bridges,
         "blockers": blockers,
         "profile": {
-            "base_diameter_mm": BASE_RADIUS_MM * 2.0,
-            "top_diameter_mm": TOP_RADIUS_MM * 2.0,
+            "construction_method": "elliptical_section_loft",
+            "section_count": len(SECTION_STATIONS),
+            "base_width_mm": WIDTH_RADII_MM[0] * 2.0,
+            "base_depth_mm": DEPTH_RADII_MM[0] * 2.0,
+            "top_width_mm": WIDTH_RADII_MM[-1] * 2.0,
+            "top_depth_mm": DEPTH_RADII_MM[-1] * 2.0,
             "curve_control_count": 5,
             "minimum_anchor_overlap_mm": MIN_OVERLAP_MM,
+            "minimum_clearance_target_mm": MIN_CLEARANCE_MM,
         },
         "warnings": warnings,
     }
