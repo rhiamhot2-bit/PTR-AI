@@ -11,6 +11,7 @@ from commands.business import business_command
 from commands.cadbrief import cadbrief_command
 from commands.cadcheck import cadcheck_command
 from commands.cadjoinplan import cadjoinplan_command
+from commands.cadmetalcheck import cadmetalcheck_command
 from commands.cadproduction import cadproduction_command
 from commands.cadshoulderbuild import cadshoulderbuild_command
 from commands.cadshouldercheck import cadshouldercheck_command
@@ -36,6 +37,7 @@ COMMAND_HANDLERS = {
     "design": design_command,
     "cadbrief": cadbrief_command,
     "cadcheck": cadcheck_command,
+    "cadmetalcheck": cadmetalcheck_command,
     "cadproduction": cadproduction_command,
     "cadjoinplan": cadjoinplan_command,
     "cadshoulderplan": cadshoulderplan_command,
@@ -77,7 +79,8 @@ def build_bot() -> commands.Bot:
             f"{command_list}\n\n"
             "Flow: !cadbrief → !cadcheck → !rhinoscript → !rhinoscript2 → "
             "!rhinoscript3 → !rhinoscript4 → !cadproduction → !cadjoinplan → "
-            "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → !cadshouldercheck"
+            "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → "
+            "!cadshouldercheck → !cadmetalcheck"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
