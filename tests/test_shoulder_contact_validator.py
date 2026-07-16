@@ -48,6 +48,15 @@ class ShoulderContactValidatorTests(unittest.TestCase):
             self.assertEqual(report_path.parent.name, "Shoulder_Contact_Audits")
             self.assertIn(str(report_path).replace("\\", "/"), script)
 
+    def test_discord_handler_uses_shared_runtime_config(self):
+        command_path = (
+            Path(__file__).resolve().parents[1] / "commands" / "cadshouldercheck.py"
+        )
+        source = command_path.read_text(encoding="utf-8")
+
+        self.assertIn("ctx.bot.ptr_config", source)
+        self.assertNotIn("from config import settings", source)
+
 
 if __name__ == "__main__":
     unittest.main()
