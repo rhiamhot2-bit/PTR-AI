@@ -51,11 +51,11 @@ def geometry_audit(objects):
 '''
     script = script.replace("\ndef main():", audit_function + "\n\ndef main():")
 
-    # Angle each prong tip inward toward the stone instead of using a straight post.
+    # Flare each prong tip slightly outward while its base remains embedded in the seat.
     old_end = "                (x, {top}, z),".format(
         top=_prong_top(report),
     )
-    new_end = "                (x * 0.88, {top}, z * 0.88),".format(
+    new_end = "                (x * 1.08, {top}, z * 1.08),".format(
         top=_prong_top(report),
     )
     script = script.replace(old_end, new_end)

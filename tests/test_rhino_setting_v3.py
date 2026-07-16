@@ -12,11 +12,12 @@ SAFE = (
 
 
 class RhinoSettingV3Tests(unittest.TestCase):
-    def test_v3_adds_guides_inward_prongs_and_audit(self) -> None:
+    def test_v3_adds_guides_outward_prongs_and_audit(self) -> None:
         script = build_rhino_setting_v3_script(validate_cad_request(SAFE))
         self.assertIn("ptr-rhino-setting-v3", script)
         self.assertIn("PTR_GIRDLE_GUIDE_", script)
-        self.assertIn("x * 0.88", script)
+        self.assertIn("x * 1.08", script)
+        self.assertNotIn("x * 0.88", script)
         self.assertIn("geometry_audit", script)
         self.assertIn("manual Boolean required", script)
         self.assertIn("rs.RotateObjects(created, (0, 0, 0), 90.0, (1, 0, 0), False)", script)

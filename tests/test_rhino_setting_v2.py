@@ -23,6 +23,7 @@ class RhinoSettingV2Tests(unittest.TestCase):
         self.assertIn("rs.AddPipe", script)
         self.assertIn("PTR_PRONG_", script)
         self.assertIn("PTR_BASKET_SUPPORT_", script)
+        self.assertIn("overlaps the seat pipe", script)
 
     def test_unsafe_request_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
