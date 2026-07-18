@@ -24,6 +24,8 @@ class CorrectedProductionFinishingAuditTests(unittest.TestCase):
         self.assertIn("_LENGTH_CORRECTION_TRIAL",script)
         self.assertIn("TARGET_OUTWARD_TILT_DEG = 11.0",script)
         self.assertIn("MIN_PRONG_TRIM_MM = 0.80",script)
+        self.assertIn("def audit_status(",script)
+        self.assertNotIn("status = corrected_finishing_status(",script)
         for forbidden in ("rs.Command","rs.Delete","AddBrep","CreateBooleanUnion"):
             self.assertNotIn(forbidden,script)
 
