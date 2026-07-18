@@ -145,6 +145,7 @@ def main():
 
     records = []
     seat_mesh = mesh_for(brep_for(seat_id)) if seat_id else None
+    seat_center = centroid(points_of(seat_mesh)) if seat_mesh else None
     if not blockers:
         for source_id in prong_ids:
             source_name = name_of(source_id)
@@ -152,17 +153,25 @@ def main():
             points = points_of(source_mesh)
             center, current_axis, pivot = principal_axis(points)
             current_tilt = math.degrees(math.acos(max(-1.0,min(1.0,current_axis.Z))))
-            adjustment = TARGET_TILT_DEG-current_tilt
-
-            horizontal = Rhino.Geometry.Vector3d(current_axis.X,current_axis.Y,0.0)
-            horizontal.Unitize()
+            # The sign matters: define OUTWARD from the Seat center to this Prong.
+            # Reusing the current axis horizontal component can preserve or amplify
+            # an inward lean even while the numeric tilt magnitude reaches 11 degrees.
+            outward = Rhino.Geometry.Vector3d(
+                center.X-seat_center.X,
+                center.Y-seat_center.Y,
+                0.0,
+            )
+            if not outward.Unitize():
+                blockers.append(source_name+": cannot determine outward direction.")
+                continue
             radians = math.radians(TARGET_TILT_DEG)
             desired_axis = Rhino.Geometry.Vector3d(
-                horizontal.X*math.sin(radians),
-                horizontal.Y*math.sin(radians),
+                outward.X*math.sin(radians),
+                outward.Y*math.sin(radians),
                 math.cos(radians),
             )
             rotation_axis = Rhino.Geometry.Vector3d.CrossProduct(current_axis,desired_axis)
+            rotation_angle = math.degrees(Rhino.Geometry.Vector3d.VectorAngle(current_axis,desired_axis))
             if not rotation_axis.Unitize():
                 rotation_axis = Rhino.Geometry.Vector3d.ZAxis
 
@@ -170,7 +179,7 @@ def main():
             rs.ObjectName(copy_id,source_name+"_11DEG_REPOSITION_COPY")
             rs.ObjectLayer(copy_id,TRIAL_LAYER)
             rs.ObjectColor(copy_id,(80,140,255))
-            rs.RotateObject(copy_id,pivot,adjustment,rotation_axis,copy=False)
+            rs.RotateObject(copy_id,pivot,rotation_angle,rotation_axis,copy=False)
 
             copy_mesh = mesh_for(brep_for(copy_id))
             pair = closest_pair(copy_mesh,seat_mesh)
@@ -189,7 +198,8 @@ def main():
                 "source_name":source_name,
                 "current_tilt_deg":round(current_tilt,6),
                 "target_tilt_deg":TARGET_TILT_DEG,
-                "rotation_applied_deg":round(adjustment,6),
+                "rotation_applied_deg":round(rotation_angle,6),
+                "direction_rule":"OUTWARD_FROM_SEAT_CENTER",
                 "estimated_diameter_mm":round(diameter,6),
                 "minimum_engagement_mm":round(engagement,6),
                 "surface_gap_after_rotation_mm":round(gap,6),
