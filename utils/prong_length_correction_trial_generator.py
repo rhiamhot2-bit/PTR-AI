@@ -145,7 +145,9 @@ def main():
                 xaxis = Rhino.Geometry.Vector3d.CrossProduct(Rhino.Geometry.Vector3d.ZAxis, axis)
                 if not xaxis.Unitize():
                     xaxis = Rhino.Geometry.Vector3d.XAxis
-                plane = Rhino.Geometry.Plane(base, xaxis, axis)
+                yaxis = Rhino.Geometry.Vector3d.CrossProduct(axis, xaxis)
+                yaxis.Unitize()
+                plane = Rhino.Geometry.Plane(base, xaxis, yaxis)
                 duplicate = brep.DuplicateBrep()
                 factor = (length + addition) / length
                 duplicate.Transform(Rhino.Geometry.Transform.Scale(plane, 1.0, 1.0, factor))
