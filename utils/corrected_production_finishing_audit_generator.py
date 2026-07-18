@@ -116,6 +116,20 @@ def intersects(first, second):
         return False
 
 
+def audit_status(candidate_count, prong_count, support_count, closed, naked_edges, stone_collision, prongs_ready):
+    if candidate_count != 1:
+        return "CORRECTED_FINISHING_AUDIT_BLOCKED_CANDIDATE"
+    if prong_count != 4 or support_count != 2:
+        return "CORRECTED_FINISHING_AUDIT_BLOCKED_MEMBER_COUNT"
+    if not closed or naked_edges:
+        return "CORRECTED_FINISHING_AUDIT_BLOCKED_TOPOLOGY"
+    if stone_collision:
+        return "CORRECTED_FINISHING_AUDIT_BLOCKED_STONE_COLLISION"
+    if not prongs_ready:
+        return "CORRECTED_FINISHING_AUDIT_BLOCKED_PRONG_FINISH"
+    return "CORRECTED_FINISHING_AUDIT_REVIEW_REQUIRED"
+
+
 def main():
     candidates, prongs, supports = [], [], []
     stone_id = None
@@ -155,7 +169,7 @@ def main():
                      "outward": outward, "ready": ready})
     spread = max(trim_values)-min(trim_values) if trim_values else None
     prongs_ready = bool(len(rows)==4 and all(r["ready"] for r in rows) and spread is not None and spread <= MAX_SYMMETRY_SPREAD_MM)
-    status = corrected_finishing_status(len(candidates),len(prongs),len(supports),closed,naked,stone_collision,prongs_ready)
+    status = audit_status(len(candidates),len(prongs),len(supports),closed,naked,stone_collision,prongs_ready)
     support_rows = [{"name": name_of(i), "diameter_mm": round(min_section(i),3), "shape":"CURVED",
                      "junction_inspection":"SECTION_OR_CLIPPING_PLANE_REQUIRED"} for i in sorted(supports,key=name_of)]
     blockers=[]
