@@ -22,6 +22,7 @@ from commands.cadfinishingplan import cadfinishingplan_command
 from commands.cadfullmetalboolean import cadfullmetalboolean_command
 from commands.cadcorrectedfullmetalboolean import cadcorrectedfullmetalboolean_command
 from commands.cadcorrectedreadiness import cadcorrectedreadiness_command
+from commands.cadcorrectedcandidate import cadcorrectedcandidate_command
 from commands.cadjoinplan import cadjoinplan_command
 from commands.cadmetalbridgetrial import cadmetalbridgetrial_command
 from commands.cadmetalcheck import cadmetalcheck_command
@@ -88,6 +89,7 @@ COMMAND_HANDLERS = {
     "cadfullmetalboolean": cadfullmetalboolean_command,
     "cadcorrectedfullmetalboolean": cadcorrectedfullmetalboolean_command,
     "cadcorrectedreadiness": cadcorrectedreadiness_command,
+    "cadcorrectedcandidate": cadcorrectedcandidate_command,
     "cadfullreadiness": cadfullreadiness_command,
     "cadfinishingaudit": cadfinishingaudit_command,
     "cadfinishingplan": cadfinishingplan_command,
