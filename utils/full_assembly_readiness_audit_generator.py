@@ -131,7 +131,8 @@ def main():
     result_ids=[]
     band_id=None
     stone_id=None
-    prong_ids=[]
+    trial_prong_ids=[]
+    original_prong_ids=[]
     original_support_ids=[]
     for object_id in rs.AllObjects(select=False,include_lights=False,include_grips=False) or []:
         name=object_name(object_id)
@@ -143,7 +144,11 @@ def main():
         ):
             band_id=object_id
         elif upper.endswith("_11DEG_REPOSITION_COPY"):
-            prong_ids.append(object_id)
+            trial_prong_ids.append(object_id)
+        elif "PRONG" in upper and not any(
+            marker in upper for marker in ("TRIAL","COPY","REHEARSAL","RESULT")
+        ) and rs.IsObjectSolid(object_id):
+            original_prong_ids.append(object_id)
         elif "BASKET_SUPPORT" in upper and not any(
             marker in upper for marker in ("TRIAL","COPY","REHEARSAL","RESULT","BRIDGE")
         ) and rs.IsObjectSolid(object_id):
@@ -159,8 +164,10 @@ def main():
         blockers.append("Exactly one Full Metal Assembly Boolean result is required.")
     if band_id is None:
         blockers.append("One original Ring Band is required as center reference.")
-    if len(prong_ids)!=4:
-        blockers.append("Four 11-degree trial Prongs are required as member references.")
+    if len(trial_prong_ids)!=4:
+        blockers.append("Four 11-degree trial Prongs are required.")
+    if len(original_prong_ids)!=4:
+        blockers.append("Four original Prongs are required as diameter references.")
     if len(original_support_ids)!=2:
         blockers.append("Two original Basket Supports are required as diameter references.")
     if stone_id is None:
@@ -172,7 +179,9 @@ def main():
     naked=naked_edge_count(result_brep) if result_brep else -1
     volume=volume_of(result_brep) if result_brep else 0.0
 
-    prong_diameters=[estimated_rod_diameter(value) for value in prong_ids]
+    # Use the original Prongs for manufacturing diameter. The tilted trial
+    # Prongs have enlarged axis-aligned bounding boxes and overstate diameter.
+    prong_diameters=[estimated_rod_diameter(value) for value in original_prong_ids]
     support_diameters=[estimated_rod_diameter(value) for value in original_support_ids]
     band_dimensions=sorted(bbox_dimensions(band_id)) if band_id else []
     band_section=band_dimensions[0] if band_dimensions else 0.0
@@ -206,7 +215,8 @@ def main():
         "volume_mm3":round(volume,6),
         "center_offset_xy_mm":round(center_offset,6),
         "maximum_center_offset_mm":MAX_CENTER_OFFSET_MM,
-        "prong_diameters_mm":[round(value,6) for value in prong_diameters],
+        "prong_reference_diameters_mm":[round(value,6) for value in prong_diameters],
+        "prong_diameter_measurement":"ORIGINAL_PRONG_REFERENCE",
         "support_reference_diameters_mm":[round(value,6) for value in support_diameters],
         "band_minimum_section_mm":round(band_section,6),
         "minimum_member_mm":round(minimum_member,6),
@@ -231,7 +241,7 @@ def main():
     print("MEMBERS | minimum_mm={0:.3f} | required_mm={1:.3f} | center_offset_xy_mm={2:.3f} | stone_collision={3}".format(
         minimum_member,MIN_MEMBER_DIAMETER_MM,center_offset,stone_hit
     ))
-    print("PRONG DIAMETERS MM | "+",".join("{0:.3f}".format(value) for value in prong_diameters))
+    print("PRONG REFERENCE DIAMETERS MM | "+",".join("{0:.3f}".format(value) for value in prong_diameters))
     print("SUPPORT REFERENCE DIAMETERS MM | "+",".join("{0:.3f}".format(value) for value in support_diameters))
     print("BAND MINIMUM SECTION MM | {0:.3f}".format(band_section))
     for blocker in blockers:
