@@ -17,6 +17,7 @@ from commands.cadbridgeboolean import cadbridgeboolean_command
 from commands.cadbridgecheck import cadbridgecheck_command
 from commands.cadcheck import cadcheck_command
 from commands.cadfullreadiness import cadfullreadiness_command
+from commands.cadfinishingaudit import cadfinishingaudit_command
 from commands.cadfullmetalboolean import cadfullmetalboolean_command
 from commands.cadjoinplan import cadjoinplan_command
 from commands.cadmetalbridgetrial import cadmetalbridgetrial_command
@@ -77,6 +78,7 @@ COMMAND_HANDLERS = {
     "cadsupportcurveboolean": cadsupportcurveboolean_command,
     "cadfullmetalboolean": cadfullmetalboolean_command,
     "cadfullreadiness": cadfullreadiness_command,
+    "cadfinishingaudit": cadfinishingaudit_command,
     "cadproduction": cadproduction_command,
     "cadproductioncandidate": cadproductioncandidate_command,
     "cadjoinplan": cadjoinplan_command,
@@ -119,7 +121,7 @@ def build_bot() -> commands.Bot:
             "!rhinoscript3 → !rhinoscript4 → !cadproduction → !cadjoinplan → "
             "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → "
             "!cadshouldercheck → !cadmetalcheck → !cadmetalrehearsal → "
-            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial → !cadbridgecheck → !cadbridgeboolean → !caduppercheck → !cadupperdistances → !cadupperbridgetrial → !cadrepositionplan → !cadtiltshape → !cadprong11trial → !cadprong11check → !cadprong11boolean → !cadsupportcurvetrial → !cadsupportcurvecheck → !cadsupportcurveboolean → !cadfullmetalboolean → !cadfullreadiness → !cadproductioncandidate"
+            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial → !cadbridgecheck → !cadbridgeboolean → !caduppercheck → !cadupperdistances → !cadupperbridgetrial → !cadrepositionplan → !cadtiltshape → !cadprong11trial → !cadprong11check → !cadprong11boolean → !cadsupportcurvetrial → !cadsupportcurvecheck → !cadsupportcurveboolean → !cadfullmetalboolean → !cadfullreadiness → !cadproductioncandidate → !cadfinishingaudit"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
