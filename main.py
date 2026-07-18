@@ -9,6 +9,7 @@ from discord.ext import commands
 from commands.automation import automation_command
 from commands.business import business_command
 from commands.cadbrief import cadbrief_command
+from commands.cadbridgecheck import cadbridgecheck_command
 from commands.cadcheck import cadcheck_command
 from commands.cadjoinplan import cadjoinplan_command
 from commands.cadmetalbridgetrial import cadmetalbridgetrial_command
@@ -46,6 +47,7 @@ COMMAND_HANDLERS = {
     "cadmetalgaps": cadmetalgaps_command,
     "cadmetalrepairplan": cadmetalrepairplan_command,
     "cadmetalbridgetrial": cadmetalbridgetrial_command,
+    "cadbridgecheck": cadbridgecheck_command,
     "cadproduction": cadproduction_command,
     "cadjoinplan": cadjoinplan_command,
     "cadshoulderplan": cadshoulderplan_command,
@@ -87,7 +89,7 @@ def build_bot() -> commands.Bot:
             "!rhinoscript3 → !rhinoscript4 → !cadproduction → !cadjoinplan → "
             "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → "
             "!cadshouldercheck → !cadmetalcheck → !cadmetalrehearsal → "
-            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial"
+            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial → !cadbridgecheck"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
