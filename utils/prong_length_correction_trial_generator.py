@@ -72,12 +72,51 @@ def reference_diameter(original_id):
     return min(positive) if positive else 0.0
 
 
-def volume_of(brep):
-    try:
-        properties = Rhino.Geometry.VolumeMassProperties.Compute(brep)
-        return properties.Volume if properties else 0.0
-    except Exception:
-        return 0.0
+def principal_axis(brep):
+    meshes = Rhino.Geometry.Mesh.CreateFromBrep(brep, Rhino.Geometry.MeshingParameters.FastRenderMesh)
+    points = []
+    for mesh in meshes or []:
+        for vertex in mesh.Vertices:
+            points.append(Rhino.Geometry.Point3d(vertex.X, vertex.Y, vertex.Z))
+    if len(points) < 4:
+        return None
+    center = Rhino.Geometry.Point3d(
+        sum(point.X for point in points) / len(points),
+        sum(point.Y for point in points) / len(points),
+        sum(point.Z for point in points) / len(points),
+    )
+    covariance = [[0.0, 0.0, 0.0] for _ in range(3)]
+    for point in points:
+        values = [point.X - center.X, point.Y - center.Y, point.Z - center.Z]
+        for row in range(3):
+            for column in range(3):
+                covariance[row][column] += values[row] * values[column]
+    vector = [0.1, 0.1, 1.0]
+    for _ in range(30):
+        next_vector = [
+            sum(covariance[row][column] * vector[column] for column in range(3))
+            for row in range(3)
+        ]
+        magnitude = math.sqrt(sum(value * value for value in next_vector))
+        if magnitude <= 0:
+            return None
+        vector = [value / magnitude for value in next_vector]
+    axis = Rhino.Geometry.Vector3d(vector[0], vector[1], vector[2])
+    if axis.Z < 0:
+        axis.Reverse()
+    projections = [
+        (point.X - center.X) * axis.X
+        + (point.Y - center.Y) * axis.Y
+        + (point.Z - center.Z) * axis.Z
+        for point in points
+    ]
+    minimum = min(projections)
+    maximum = max(projections)
+    return {
+        "axis": axis,
+        "base": center + axis * minimum,
+        "length": maximum - minimum,
+    }
 
 
 def main():
@@ -121,50 +160,40 @@ def main():
         addition = max(0.0, TARGET_ALLOWANCE_MM - allowance) if allowance is not None else 0.0
         suffix = name.upper().replace("PTR_PRONG_", "").split("_")[0]
         diameter = reference_diameter(originals.get(suffix)) if suffix in originals else 0.0
-        volume = volume_of(brep) if brep else 0.0
-        length = volume / (math.pi * (diameter / 2.0) ** 2) if diameter > 0 and volume > 0 else 0.0
+        measurement = principal_axis(brep) if brep else None
+        axial_addition = (
+            addition / measurement["axis"].Z
+            if measurement and measurement["axis"].Z > 0 else 0.0
+        )
 
         created_id = None
-        if not blockers and brep and length > 0:
-            radial = Rhino.Geometry.Vector3d(
-                box["center"].X - stone_center.X,
-                box["center"].Y - stone_center.Y,
-                0.0,
-            )
-            if not radial.Unitize():
-                blockers.append(name + " radial direction could not be determined.")
-            else:
-                angle = math.radians(TARGET_TILT_DEG)
-                axis = Rhino.Geometry.Vector3d(
-                    radial.X * math.sin(angle),
-                    radial.Y * math.sin(angle),
-                    math.cos(angle),
-                )
-                axis.Unitize()
-                base = box["center"] - axis * (length / 2.0)
-                xaxis = Rhino.Geometry.Vector3d.CrossProduct(Rhino.Geometry.Vector3d.ZAxis, axis)
-                if not xaxis.Unitize():
-                    xaxis = Rhino.Geometry.Vector3d.XAxis
-                yaxis = Rhino.Geometry.Vector3d.CrossProduct(axis, xaxis)
-                yaxis.Unitize()
-                plane = Rhino.Geometry.Plane(base, xaxis, yaxis)
-                duplicate = brep.DuplicateBrep()
-                factor = (length + addition) / length
-                duplicate.Transform(Rhino.Geometry.Transform.Scale(plane, 1.0, 1.0, factor))
-                attributes = Rhino.DocObjects.ObjectAttributes()
-                attributes.Name = name + "_LENGTH_CORRECTION_TRIAL"
-                attributes.LayerIndex = layer_index
-                attributes.ObjectColor = System.Drawing.Color.FromArgb(80, 170, 255)
-                attributes.ColorSource = Rhino.DocObjects.ObjectColorSource.ColorFromObject
-                attributes.SetUserString("PTR_STATUS", "TRIAL_ONLY")
-                attributes.SetUserString("PTR_SOURCE_ID", str(source_id))
-                attributes.SetUserString("PTR_LENGTH_ADDITION_MM", "{0:.3f}".format(addition))
-                attributes.SetUserString("PTR_TARGET_ALLOWANCE_MM", "{0:.3f}".format(TARGET_ALLOWANCE_MM))
-                attributes.SetUserString("PTR_PRESERVE_OUTWARD_TILT_DEG", "11.0")
-                attributes.SetUserString("PTR_MIN_SEAT_ENGAGEMENT_RATIO", "0.25")
-                created_id = sc.doc.Objects.AddBrep(duplicate, attributes)
-                if created_id:
-                    created.append(created_id)
+        if not blockers and brep and measurement and measurement["length"] > 0:
+            axis = measurement["axis"]
+            base = measurement["base"]
+            xaxis = Rhino.Geometry.Vector3d.CrossProduct(Rhino.Geometry.Vector3d.ZAxis, axis)
+            if not xaxis.Unitize():
+                xaxis = Rhino.Geometry.Vector3d.XAxis
+            yaxis = Rhino.Geometry.Vector3d.CrossProduct(axis, xaxis)
+            yaxis.Unitize()
+            plane = Rhino.Geometry.Plane(base, xaxis, yaxis)
+            duplicate = brep.DuplicateBrep()
+            factor = (measurement["length"] + axial_addition) / measurement["length"]
+            duplicate.Transform(Rhino.Geometry.Transform.Scale(plane, 1.0, 1.0, factor))
+            attributes = Rhino.DocObjects.ObjectAttributes()
+            attributes.Name = name + "_LENGTH_CORRECTION_TRIAL"
+            attributes.LayerIndex = layer_index
+            attributes.ObjectColor = System.Drawing.Color.FromArgb(80, 170, 255)
+            attributes.ColorSource = Rhino.DocObjects.ObjectColorSource.ColorFromObject
+            attributes.SetUserString("PTR_STATUS", "TRIAL_ONLY")
+            attributes.SetUserString("PTR_SOURCE_ID", str(source_id))
+            attributes.SetUserString("PTR_VERTICAL_CORRECTION_MM", "{0:.3f}".format(addition))
+            attributes.SetUserString("PTR_AXIS_ADDITION_MM", "{0:.3f}".format(axial_addition))
+            attributes.SetUserString("PTR_TARGET_ALLOWANCE_MM", "{0:.3f}".format(TARGET_ALLOWANCE_MM))
+            attributes.SetUserString("PTR_PRESERVE_OUTWARD_TILT_DEG", "11.0")
+            attributes.SetUserString("PTR_MIN_SEAT_ENGAGEMENT_RATIO", "0.25")
+            created_id = sc.doc.Objects.AddBrep(duplicate, attributes)
+            if created_id:
+                created.append(created_id)
 
         rows.append({
             "source": name,
@@ -172,6 +201,7 @@ def main():
             "trial_id": str(created_id) if created_id else None,
             "allowance_before_mm": round(allowance, 3) if allowance is not None else None,
             "addition_mm": round(addition, 3),
+            "axis_addition_mm": round(axial_addition, 3),
             "target_allowance_mm": TARGET_ALLOWANCE_MM,
             "reference_diameter_mm": round(diameter, 3),
             "outward_tilt_deg": TARGET_TILT_DEG,
@@ -206,8 +236,8 @@ def main():
     print("PRONG LENGTH CORRECTION TRIAL | status=" + status)
     print("TRIAL PRONGS | source={0} | created={1}".format(len(source_prongs), len(created)))
     for row in rows:
-        print("PRONG LENGTH | {0} | before_mm={1} | addition_mm={2:.3f} | target_mm=0.800 | diameter_mm={3:.3f} | outward_tilt_deg=11.0 | base_preserved=True".format(
-            row["source"], row["allowance_before_mm"], row["addition_mm"], row["reference_diameter_mm"]
+        print("PRONG LENGTH | {0} | before_mm={1} | vertical_correction_mm={2:.3f} | axis_addition_mm={4:.3f} | target_mm=0.800 | diameter_mm={3:.3f} | outward_tilt_deg=11.0 | base_preserved=True".format(
+            row["source"], row["allowance_before_mm"], row["addition_mm"], row["reference_diameter_mm"], row["axis_addition_mm"]
         ))
     for blocker in blockers:
         print("BLOCKER | " + blocker)
