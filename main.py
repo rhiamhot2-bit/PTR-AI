@@ -32,6 +32,7 @@ from commands.cadprong11boolean import cadprong11boolean_command
 from commands.cadprong11check import cadprong11check_command
 from commands.cadprong11trial import cadprong11trial_command
 from commands.cadpronglengthtrial import cadpronglengthtrial_command
+from commands.cadpronglengthcheck import cadpronglengthcheck_command
 from commands.cadrepositionplan import cadrepositionplan_command
 from commands.cadsupportcurveboolean import cadsupportcurveboolean_command
 from commands.cadsupportcurvecheck import cadsupportcurvecheck_command
@@ -74,6 +75,7 @@ COMMAND_HANDLERS = {
     "cadtiltshape": cadtiltshape_command,
     "cadprong11trial": cadprong11trial_command,
     "cadpronglengthtrial": cadpronglengthtrial_command,
+    "cadpronglengthcheck": cadpronglengthcheck_command,
     "cadprong11check": cadprong11check_command,
     "cadprong11boolean": cadprong11boolean_command,
     "cadsupportcurvetrial": cadsupportcurvetrial_command,
@@ -125,7 +127,7 @@ def build_bot() -> commands.Bot:
             "!rhinoscript3 → !rhinoscript4 → !cadproduction → !cadjoinplan → "
             "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → "
             "!cadshouldercheck → !cadmetalcheck → !cadmetalrehearsal → "
-            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial → !cadbridgecheck → !cadbridgeboolean → !caduppercheck → !cadupperdistances → !cadupperbridgetrial → !cadrepositionplan → !cadtiltshape → !cadprong11trial → !cadprong11check → !cadprong11boolean → !cadsupportcurvetrial → !cadsupportcurvecheck → !cadsupportcurveboolean → !cadfullmetalboolean → !cadfullreadiness → !cadproductioncandidate → !cadfinishingaudit → !cadfinishingplan → !cadpronglengthtrial"
+            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial → !cadbridgecheck → !cadbridgeboolean → !caduppercheck → !cadupperdistances → !cadupperbridgetrial → !cadrepositionplan → !cadtiltshape → !cadprong11trial → !cadprong11check → !cadprong11boolean → !cadsupportcurvetrial → !cadsupportcurvecheck → !cadsupportcurveboolean → !cadfullmetalboolean → !cadfullreadiness → !cadproductioncandidate → !cadfinishingaudit → !cadfinishingplan → !cadpronglengthtrial → !cadpronglengthcheck"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
