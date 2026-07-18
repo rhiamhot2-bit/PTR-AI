@@ -112,11 +112,16 @@ def main():
     seat_id=None
     band_id=None
     support_ids=[]
+    source_support_ids=[]
     for object_id in rs.AllObjects(select=False,include_lights=False,include_grips=False) or []:
         name=object_name(object_id)
         upper=name.upper()
         if upper.startswith("PTR_CURVED_SUPPORT_TRIAL_"):
             support_ids.append(object_id)
+        elif "BASKET_SUPPORT" in upper and not any(
+            marker in upper for marker in ("TRIAL","COPY","REHEARSAL","RESULT","BRIDGE")
+        ) and rs.IsObjectSolid(object_id):
+            source_support_ids.append(object_id)
         elif "STONE_SEAT" in upper and not any(
             marker in upper for marker in ("TRIAL","COPY","REHEARSAL","RESULT")
         ):
@@ -133,7 +138,14 @@ def main():
         blockers.append("One original Ring Band is required.")
     if len(support_ids)!=2:
         blockers.append("Exactly two Curved Support trials are required.")
+    if len(source_support_ids)!=2:
+        blockers.append("Exactly two original Basket Supports are required as diameter references.")
 
+    source_diameters=[estimated_diameter(value) for value in source_support_ids]
+    reference_diameter=(
+        sum(source_diameters)/float(len(source_diameters))
+        if source_diameters else 0.0
+    )
     seat_brep=brep_for(seat_id) if seat_id else None
     band_brep=brep_for(band_id) if band_id else None
     results=[]
@@ -141,7 +153,10 @@ def main():
         for support_id in sorted(support_ids,key=lambda value:object_name(value)):
             name=object_name(support_id)
             brep=brep_for(support_id)
-            diameter=estimated_diameter(support_id)
+            # A curved Support's axis-aligned bounding box includes its bow and
+            # cannot be used as its tube diameter. Use the two straight original
+            # Basket Supports as the manufacturing diameter reference.
+            diameter=reference_diameter
             radius=diameter/2.0
             seat_pieces=intersection_pieces(brep,seat_brep)
             band_pieces=intersection_pieces(brep,band_brep)
@@ -191,6 +206,8 @@ def main():
         "support_count":len(support_ids),
         "ready_count":ready_count,
         "minimum_contact_depth_mm":MIN_CONTACT_DEPTH_MM,
+        "source_diameter_reference_mm":round(reference_diameter,6),
+        "diameter_measurement":"AVERAGE_ORIGINAL_BASKET_SUPPORT_DIAMETER",
         "diameter_spread_mm":round(diameter_spread,6),
         "length_spread_mm":round(length_spread,6),
         "symmetry_ok":symmetry_ok,
