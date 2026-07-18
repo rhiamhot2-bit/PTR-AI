@@ -171,7 +171,7 @@ if __name__=="__main__":
 
 
 def build_corrected_clean_production_candidate_script(report_path:Path)->str:
-    return _SCRIPT_TEMPLATE.replace("__REPORT_PATH__",json.dumps(str(report_path).replace("\\\\","/")))
+    return _SCRIPT_TEMPLATE.replace("__REPORT_PATH__",json.dumps(str(report_path).replace("\\","/")))
 
 
 def prepare_corrected_clean_production_candidate(memory_root:Path,now:datetime|None=None):
