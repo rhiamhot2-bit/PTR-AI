@@ -21,6 +21,8 @@ class ProngLengthCorrectionTrialTests(unittest.TestCase):
         compile(script,"trial.py","exec")
         self.assertIn("DuplicateBrep()",script)
         self.assertIn("Transform.Scale(plane, 1.0, 1.0, factor)",script)
+        self.assertIn("principal_axis",script)
+        self.assertIn("PTR_AXIS_ADDITION_MM",script)
         self.assertIn("PTR_MIN_SEAT_ENGAGEMENT_RATIO",script)
         self.assertNotIn("rs.Command",script)
         self.assertNotIn("rs.Delete",script)
