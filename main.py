@@ -12,6 +12,7 @@ from commands.cadbrief import cadbrief_command
 from commands.cadcheck import cadcheck_command
 from commands.cadjoinplan import cadjoinplan_command
 from commands.cadmetalcheck import cadmetalcheck_command
+from commands.cadmetalgaps import cadmetalgaps_command
 from commands.cadmetalrehearsal import cadmetalrehearsal_command
 from commands.cadproduction import cadproduction_command
 from commands.cadshoulderbuild import cadshoulderbuild_command
@@ -40,6 +41,7 @@ COMMAND_HANDLERS = {
     "cadcheck": cadcheck_command,
     "cadmetalcheck": cadmetalcheck_command,
     "cadmetalrehearsal": cadmetalrehearsal_command,
+    "cadmetalgaps": cadmetalgaps_command,
     "cadproduction": cadproduction_command,
     "cadjoinplan": cadjoinplan_command,
     "cadshoulderplan": cadshoulderplan_command,
@@ -60,14 +62,12 @@ COMMAND_HANDLERS = {
     "automation": automation_command,
 }
 
-
 def build_bot() -> commands.Bot:
-    """Create and configure the Discord bot."""
     config = load_config()
     intents = discord.Intents.default()
     intents.message_content = True
     bot = commands.Bot(command_prefix=config.command_prefix, intents=intents, help_command=None)
-    bot.ptr_config = config  # type: ignore[attr-defined]
+    bot.ptr_config = config
 
     @bot.event
     async def on_ready() -> None:
@@ -82,22 +82,19 @@ def build_bot() -> commands.Bot:
             "Flow: !cadbrief → !cadcheck → !rhinoscript → !rhinoscript2 → "
             "!rhinoscript3 → !rhinoscript4 → !cadproduction → !cadjoinplan → "
             "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → "
-            "!cadshouldercheck → !cadmetalcheck → !cadmetalrehearsal"
+            "!cadshouldercheck → !cadmetalcheck → !cadmetalrehearsal → !cadmetalgaps"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
         bot.command(name=command_name)(handler)
     return bot
 
-
 def main() -> None:
-    """Load configuration and run the bot."""
     bot = build_bot()
     token = os.getenv("DISCORD_TOKEN")
     if not token:
         raise RuntimeError("DISCORD_TOKEN is required. Copy .env.example to .env and set your token.")
     bot.run(token)
-
 
 if __name__ == "__main__":
     main()
