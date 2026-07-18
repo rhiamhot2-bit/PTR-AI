@@ -117,10 +117,30 @@ def projection_interval(points, axis):
     return min(values), max(values)
 
 
-def overlap_depth(first_points, second_points, axis):
-    first = projection_interval(first_points, axis)
-    second = projection_interval(second_points, axis)
-    return max(0.0, min(first[1], second[1]) - max(first[0], second[0]))
+def brep_bbox_points(brep):
+    box = brep.GetBoundingBox(True)
+    return list(box.GetCorners()) if box and box.IsValid else []
+
+
+def analysis_intersection(first, second):
+    """Return temporary Boolean-intersection Breps without adding them to Rhino."""
+    try:
+        pieces = Rhino.Geometry.Brep.CreateBooleanIntersection(
+            first, second, MODEL_TOLERANCE
+        )
+        return [piece for piece in (pieces or []) if piece and piece.IsValid]
+    except Exception:
+        return []
+
+
+def intersection_depth(pieces, axis):
+    points = []
+    for piece in pieces:
+        points.extend(brep_bbox_points(piece))
+    if not points:
+        return 0.0
+    low, high = projection_interval(points, axis)
+    return max(0.0, high-low)
 
 
 def estimated_diameter(object_id):
@@ -206,8 +226,9 @@ def main():
             outward = bool(radial_ok and outward_dot > 0.0)
 
             diameter = estimated_diameter(trial_id)
-            engagement_depth = overlap_depth(
-                bbox_points(trial_id), bbox_points(seat_id), outward_axis
+            intersection_pieces = analysis_intersection(brep, seat_brep)
+            engagement_depth = intersection_depth(
+                intersection_pieces, outward_axis
             ) if radial_ok else 0.0
             engagement_ratio = engagement_depth / diameter if diameter else 0.0
             seat_hit = intersects(brep, seat_brep)
@@ -235,6 +256,8 @@ def main():
                 "engagement_ratio": round(engagement_ratio, 6),
                 "minimum_required_engagement_mm": round(diameter*MIN_ENGAGEMENT_RATIO, 6),
                 "seat_surface_intersection": seat_hit,
+                "analysis_intersection_solid_count": len(intersection_pieces),
+                "engagement_measurement": "IN_MEMORY_BOOLEAN_INTERSECTION_RADIAL_DEPTH",
                 "stone_loading_collision": stone_hit,
             })
 
@@ -263,9 +286,10 @@ def main():
         "results": results,
         "blockers": blockers,
         "geometry_modified": False,
-        "boolean_executed": False,
+        "document_boolean_executed": False,
+        "analysis_boolean_intersection_executed": True,
         "production_export_allowed": False,
-        "warning": "Engagement depth uses projected bounding boxes; inspect real Rhino surfaces before production.",
+        "warning": "Engagement is radial depth of a temporary in-memory Boolean intersection; inspect real Rhino surfaces before production.",
     }
 
     folder = os.path.dirname(REPORT_PATH)
@@ -287,7 +311,8 @@ def main():
     for blocker in blockers:
         print("BLOCKER | "+blocker)
     print("GEOMETRY MODIFIED | NO")
-    print("BOOLEAN | NOT EXECUTED")
+    print("ANALYSIS BOOLEAN INTERSECTION | IN MEMORY ONLY")
+    print("DOCUMENT BOOLEAN | NOT EXECUTED")
     print("PRODUCTION EXPORT | BLOCKED")
     print("PRONG VALIDATION REPORT | "+REPORT_PATH)
 
