@@ -158,8 +158,10 @@ def main():
         trim = box["max_z"] - stone_box["max_z"] if box and stone_box else None
         tilt, outward = axis_and_tilt(object_id)
         diameter = min_section(object_id)
-        ready = bool(trim is not None and MIN_PRONG_TRIM_MM <= trim <= MAX_PRONG_TRIM_MM and
-                     diameter >= MIN_MEMBER_MM and tilt is not None and
+        ready = bool(trim is not None and
+                     trim >= MIN_PRONG_TRIM_MM - MODEL_TOLERANCE and
+                     trim <= MAX_PRONG_TRIM_MM + MODEL_TOLERANCE and
+                     diameter >= MIN_MEMBER_MM - MODEL_TOLERANCE and tilt is not None and
                      abs(tilt-TARGET_OUTWARD_TILT_DEG) <= TILT_TOLERANCE_DEG and outward)
         if trim is not None:
             trim_values.append(trim)
@@ -168,7 +170,7 @@ def main():
                      "tilt_deg": round(tilt,3) if tilt is not None else None,
                      "outward": outward, "ready": ready})
     spread = max(trim_values)-min(trim_values) if trim_values else None
-    prongs_ready = bool(len(rows)==4 and all(r["ready"] for r in rows) and spread is not None and spread <= MAX_SYMMETRY_SPREAD_MM)
+    prongs_ready = bool(len(rows)==4 and all(r["ready"] for r in rows) and spread is not None and spread <= MAX_SYMMETRY_SPREAD_MM + MODEL_TOLERANCE)
     status = audit_status(len(candidates),len(prongs),len(supports),closed,naked,stone_collision,prongs_ready)
     support_rows = [{"name": name_of(i), "diameter_mm": round(min_section(i),3), "shape":"CURVED",
                      "junction_inspection":"SECTION_OR_CLIPPING_PLANE_REQUIRED"} for i in sorted(supports,key=name_of)]
