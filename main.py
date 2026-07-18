@@ -23,6 +23,7 @@ from commands.cadmetalgaps import cadmetalgaps_command
 from commands.cadmetalrepairplan import cadmetalrepairplan_command
 from commands.cadmetalrehearsal import cadmetalrehearsal_command
 from commands.cadproduction import cadproduction_command
+from commands.cadprong11trial import cadprong11trial_command
 from commands.cadrepositionplan import cadrepositionplan_command
 from commands.cadshoulderbuild import cadshoulderbuild_command
 from commands.cadshouldercheck import cadshouldercheck_command
@@ -60,6 +61,7 @@ COMMAND_HANDLERS = {
     "cadupperbridgetrial": cadupperbridgetrial_command,
     "cadrepositionplan": cadrepositionplan_command,
     "cadtiltshape": cadtiltshape_command,
+    "cadprong11trial": cadprong11trial_command,
     "cadproduction": cadproduction_command,
     "cadjoinplan": cadjoinplan_command,
     "cadshoulderplan": cadshoulderplan_command,
@@ -101,7 +103,7 @@ def build_bot() -> commands.Bot:
             "!rhinoscript3 → !rhinoscript4 → !cadproduction → !cadjoinplan → "
             "!cadshoulderplan → !cadshoulderbuild → !cadshoulderloft4 → "
             "!cadshouldercheck → !cadmetalcheck → !cadmetalrehearsal → "
-            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial → !cadbridgecheck → !cadbridgeboolean → !caduppercheck → !cadupperdistances → !cadupperbridgetrial → !cadrepositionplan → !cadtiltshape"
+            "!cadmetalgaps → !cadmetalrepairplan → !cadmetalbridgetrial → !cadbridgecheck → !cadbridgeboolean → !caduppercheck → !cadupperdistances → !cadupperbridgetrial → !cadrepositionplan → !cadtiltshape → !cadprong11trial"
         )
 
     for command_name, handler in COMMAND_HANDLERS.items():
