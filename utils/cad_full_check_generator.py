@@ -25,6 +25,7 @@ import rhinoscriptsyntax as rs
 import scriptcontext as sc
 
 PROFILE = __PROFILE__
+SOURCE_OPTIONS = __SOURCE_OPTIONS__
 REPORT_PATH = __REPORT_PATH__
 TOL = float(sc.doc.ModelAbsoluteTolerance)
 
