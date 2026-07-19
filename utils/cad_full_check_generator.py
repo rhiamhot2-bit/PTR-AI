@@ -143,7 +143,9 @@ def main():
     if folder and not os.path.isdir(folder): os.makedirs(folder)
     with io.open(REPORT_PATH,"w",encoding="utf-8") as h: json.dump(report,h,ensure_ascii=False,indent=2)
     print("PARAMETERIZED CAD FULL CHECK | status="+status)
-    print("ASSEMBLY MODE | EDITABLE_NON_UNION")\n    print("SOURCE OPTIONS | "+str(SOURCE_OPTIONS))\n    if ambiguous: print("AMBIGUOUS SOURCE ROLES | "+",".join(ambiguous))
+    print("ASSEMBLY MODE | EDITABLE_NON_UNION")
+    print("SOURCE OPTIONS | "+str(SOURCE_OPTIONS))
+    if ambiguous: print("AMBIGUOUS SOURCE ROLES | "+",".join(ambiguous))
     print("COUNTS | "+str(report["counts"]))
     for r in prong_rows: print("PRONG | {0} | tilt_deg={1} | outward={2} | ready={3}".format(r["name"],r["tilt_deg"],r["outward"],r["ready"]))
     for r in contacts: print("CONTACT | {0} <-> {1} | ready={2}".format(r["a"],r["b"],r["contact"]))
@@ -156,9 +158,14 @@ if __name__=="__main__": main()
 '''
 
 
-def build_cad_full_check_script(report_path, profile):
-    return _TEMPLATE.replace("__PROFILE__", json.dumps(profile, ensure_ascii=False)).replace("__REPORT_PATH__", json.dumps(str(report_path).replace("\\", "/")))
-
+def build_cad_full_check_script(report_path, profile, source_options=None):
+    options = source_options or {"source": "LATEST_EDITABLE", "source_layer": ""}
+    return (
+        _TEMPLATE
+        .replace("__PROFILE__", json.dumps(profile, ensure_ascii=False))
+        .replace("__SOURCE_OPTIONS__", json.dumps(options, ensure_ascii=False))
+        .replace("__REPORT_PATH__", json.dumps(str(report_path).replace(chr(92), "/")))
+    )
 
 def prepare_cad_full_check(memory_root, profile, now=None, source_options=None):
     stamp=(now or datetime.now()).strftime("%Y-%m-%d_%H-%M-%S-%f")
