@@ -30,6 +30,10 @@ REPORT_PATH = __REPORT_PATH__
 TOL = float(sc.doc.ModelAbsoluteTolerance)
 
 def name_of(i): return rs.ObjectName(i) or ""
+def runtime_serial(i):
+    obj=sc.doc.Objects.Find(i)
+    try: return int(obj.RuntimeSerialNumber) if obj else 0
+    except Exception: return 0
 def brep_for(i):
     obj=sc.doc.Objects.Find(i)
     return obj.Geometry if obj and isinstance(obj.Geometry,Rhino.Geometry.Brep) else None
@@ -99,19 +103,19 @@ def select_roles():
         layer=(rs.ObjectLayer(i) or "").upper()
         if layer_filter and not (layer==layer_filter or layer.startswith(layer_filter+"::")): continue
         score=editable_score(n,role)
-        if score is not None: candidates[role].append((score,n,str(i),i))
+        if score is not None: candidates[role].append((score,runtime_serial(i),n,str(i),i))
     expected={"prongs":PROFILE["prong_count"],"supports":PROFILE["support_count"],"seats":1,"bands":1}
     selected={k:[] for k in candidates}; ambiguous=[]
     for role,items in candidates.items():
-        items.sort(key=lambda row:(-row[0],row[1],row[2]))
+        items.sort(key=lambda row:(-row[0],-row[1],row[2],row[3]))
         need=expected[role]
         if SOURCE_OPTIONS.get("source","LATEST_EDITABLE").upper()=="ALL_EDITABLE":
-            selected[role]=[row[3] for row in items]
+            selected[role]=[row[4] for row in items]
         elif len(items)>=need:
-            cutoff=items[need-1][0]
-            tied=[row for row in items if row[0]>=cutoff]
-            if len(tied)>need: ambiguous.append(role)
-            else: selected[role]=[row[3] for row in items[:need]]
+            cutoff=(items[need-1][0],items[need-1][1])
+            tied=[row for row in items if (row[0],row[1])==cutoff]
+            if len(tied)>1: ambiguous.append(role)
+            else: selected[role]=[row[4] for row in items[:need]]
     return selected,ambiguous,expected
 def main():
     roles,ambiguous,expected=select_roles()
@@ -134,7 +138,7 @@ def main():
         prong_rows.append({"name":name_of(i),"tilt_deg":round(tilt,3) if tilt is not None else None,"outward":outward,"ready":ready})
     tilt_valid=bool(len(prong_rows)==PROFILE["prong_count"] and all(r["ready"] for r in prong_rows))
     status=("FULL_CHECK_BLOCKED_AMBIGUOUS_SOURCE" if ambiguous else "FULL_CHECK_BLOCKED_MEMBER_COUNT" if not counts_valid else "FULL_CHECK_BLOCKED_TOPOLOGY" if not topology_valid else "FULL_CHECK_BLOCKED_MEMBER_SIZE" if not dimensions_valid else "FULL_CHECK_BLOCKED_CONTACT" if not contacts_valid else "FULL_CHECK_BLOCKED_PRONG_TILT" if not tilt_valid else "EDITABLE_ASSEMBLY_READY")
-    report={"generator":"ptr-parameterized-full-check-v1","status":status,"job_profile":PROFILE,"source_options":SOURCE_OPTIONS,"ambiguous_roles":ambiguous,"counts":{k:len(v) for k,v in roles.items()},"prongs":prong_rows,"contacts":contacts,"geometry_modified":False,"document_boolean_executed":False,"production_export_allowed":False,"manual_union_required":status=="EDITABLE_ASSEMBLY_READY"}
+    report={"generator":"ptr-parameterized-full-check-v1","status":status,"job_profile":PROFILE,"source_options":SOURCE_OPTIONS,"ambiguous_roles":ambiguous,"counts":{k:len(v) for k,v in roles.items()},"prongs":prong_rows,"contacts":contacts,"geometry_modified":False,"document_boolean_executed":False,"production_export_allowed":False,"manual_union_required":True}
     folder=os.path.dirname(REPORT_PATH)
     if folder and not os.path.isdir(folder): os.makedirs(folder)
     with io.open(REPORT_PATH,"w",encoding="utf-8") as h: json.dump(report,h,ensure_ascii=False,indent=2)
