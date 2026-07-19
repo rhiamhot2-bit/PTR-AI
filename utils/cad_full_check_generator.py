@@ -122,7 +122,22 @@ def main():
     counts_valid=all(len(roles[k])==v for k,v in expected.items())
     all_ids=sum(roles.values(),[])
     topology_valid=bool(all_ids and all(rs.IsObjectSolid(i) and naked_count(brep_for(i))==0 for i in all_ids))
-    dimensions_valid=all(minimum_section(i)+TOL>=PROFILE["minimum_member_mm"] for i in all_ids)
+    required_member=float(PROFILE["minimum_member_mm"])
+    member_rows=[]
+    for role,ids in roles.items():
+        for i in ids:
+            measured=minimum_section(i)
+            ready=measured+TOL>=required_member
+            member_rows.append({
+                "name":name_of(i),
+                "role":role[:-1] if role.endswith("s") else role,
+                "measured_mm":round(measured,3),
+                "required_mm":round(required_member,3),
+                "deficit_mm":round(max(0.0,required_member-measured),3),
+                "method":"bounding_box_minimum_extent",
+                "ready":ready
+            })
+    dimensions_valid=bool(member_rows and all(r["ready"] for r in member_rows))
     seat=roles["seats"][0] if len(roles["seats"])==1 else None
     band=roles["bands"][0] if len(roles["bands"])==1 else None
     contacts=[]
@@ -138,7 +153,7 @@ def main():
         prong_rows.append({"name":name_of(i),"tilt_deg":round(tilt,3) if tilt is not None else None,"outward":outward,"ready":ready})
     tilt_valid=bool(len(prong_rows)==PROFILE["prong_count"] and all(r["ready"] for r in prong_rows))
     status=("FULL_CHECK_BLOCKED_AMBIGUOUS_SOURCE" if ambiguous else "FULL_CHECK_BLOCKED_MEMBER_COUNT" if not counts_valid else "FULL_CHECK_BLOCKED_TOPOLOGY" if not topology_valid else "FULL_CHECK_BLOCKED_MEMBER_SIZE" if not dimensions_valid else "FULL_CHECK_BLOCKED_CONTACT" if not contacts_valid else "FULL_CHECK_BLOCKED_PRONG_TILT" if not tilt_valid else "EDITABLE_ASSEMBLY_READY")
-    report={"generator":"ptr-parameterized-full-check-v1","status":status,"job_profile":PROFILE,"source_options":SOURCE_OPTIONS,"ambiguous_roles":ambiguous,"counts":{k:len(v) for k,v in roles.items()},"prongs":prong_rows,"contacts":contacts,"geometry_modified":False,"document_boolean_executed":False,"production_export_allowed":False,"manual_union_required":True}
+    report={"generator":"ptr-parameterized-full-check-v1","status":status,"job_profile":PROFILE,"source_options":SOURCE_OPTIONS,"ambiguous_roles":ambiguous,"counts":{k:len(v) for k,v in roles.items()},"member_sizes":member_rows,"prongs":prong_rows,"contacts":contacts,"geometry_modified":False,"document_boolean_executed":False,"production_export_allowed":False,"manual_union_required":True}
     folder=os.path.dirname(REPORT_PATH)
     if folder and not os.path.isdir(folder): os.makedirs(folder)
     with io.open(REPORT_PATH,"w",encoding="utf-8") as h: json.dump(report,h,ensure_ascii=False,indent=2)
@@ -147,6 +162,11 @@ def main():
     print("SOURCE OPTIONS | "+str(SOURCE_OPTIONS))
     if ambiguous: print("AMBIGUOUS SOURCE ROLES | "+",".join(ambiguous))
     print("COUNTS | "+str(report["counts"]))
+    for r in member_rows:
+        print("MEMBER SIZE | {0} | role={1} | measured_mm={2:.3f} | required_mm={3:.3f} | deficit_mm={4:.3f} | method={5} | ready={6}".format(r["name"],r["role"],r["measured_mm"],r["required_mm"],r["deficit_mm"],r["method"],r["ready"]))
+    for r in member_rows:
+        if not r["ready"]:
+            print("BLOCKER | {0} measured {1:.3f} mm, below required {2:.3f} mm by {3:.3f} mm".format(r["name"],r["measured_mm"],r["required_mm"],r["deficit_mm"]))
     for r in prong_rows: print("PRONG | {0} | tilt_deg={1} | outward={2} | ready={3}".format(r["name"],r["tilt_deg"],r["outward"],r["ready"]))
     for r in contacts: print("CONTACT | {0} <-> {1} | ready={2}".format(r["a"],r["b"],r["contact"]))
     print("SOURCE GEOMETRY MODIFIED | NO")
