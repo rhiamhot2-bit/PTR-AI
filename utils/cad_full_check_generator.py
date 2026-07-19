@@ -69,15 +69,51 @@ def axis_tilt(i):
     outward=(v[0]*radial[0]+v[1]*radial[1])>0 if rmag>TOL else None
     return math.degrees(math.acos(max(-1,min(1,v[2])))),outward
 
-def main():
-    roles={"prongs":[],"supports":[],"seats":[],"bands":[]}
+def role_of(n):
+    if "PRONG" in n: return "prongs"
+    if "SUPPORT" in n: return "supports"
+    if "STONE_SEAT" in n: return "seats"
+    if "RING_BAND" in n: return "bands"
+    return None
+def editable_score(n,role):
+    if any(x in n for x in ("BOOLEAN","REHEARSAL","AUDIT","CANDIDATE","RESULT")): return None
+    score=0
+    if role=="prongs":
+        if "LENGTH_CORRECTION" in n: score+=80
+        if "11DEG_REPOSITION" in n: score+=40
+        if "COPY" in n: score+=10
+        if "TRIAL" in n: score+=5
+    elif role=="supports":
+        if "CURVED_SUPPORT" in n: score+=40
+        if "TRIAL" in n: score+=5
+    elif role=="seats" and "STONE_SEAT_CONCEPT" in n: score+=20
+    elif role=="bands" and "RING_BAND" in n: score+=20
+    return score
+def select_roles():
+    candidates={"prongs":[],"supports":[],"seats":[],"bands":[]}
+    layer_filter=SOURCE_OPTIONS.get("source_layer","").strip().upper()
     for i in rs.AllObjects(select=False,include_lights=False,include_grips=False) or []:
-        n=name_of(i).upper()
-        if "PRONG" in n and not any(x in n for x in ("TRIAL","COPY","REHEARSAL","RESULT")): roles["prongs"].append(i)
-        elif "SUPPORT" in n and not any(x in n for x in ("TRIAL","COPY","REHEARSAL","RESULT")): roles["supports"].append(i)
-        elif "STONE_SEAT" in n: roles["seats"].append(i)
-        elif "RING_BAND" in n: roles["bands"].append(i)
+        n=name_of(i).upper(); role=role_of(n)
+        if not role: continue
+        layer=(rs.ObjectLayer(i) or "").upper()
+        if layer_filter and not (layer==layer_filter or layer.startswith(layer_filter+"::")): continue
+        score=editable_score(n,role)
+        if score is not None: candidates[role].append((score,n,str(i),i))
     expected={"prongs":PROFILE["prong_count"],"supports":PROFILE["support_count"],"seats":1,"bands":1}
+    selected={k:[] for k in candidates}; ambiguous=[]
+    for role,items in candidates.items():
+        items.sort(key=lambda row:(-row[0],row[1],row[2]))
+        need=expected[role]
+        if SOURCE_OPTIONS.get("source","LATEST_EDITABLE").upper()=="ALL_EDITABLE":
+            selected[role]=[row[3] for row in items]
+        elif len(items)>=need:
+            cutoff=items[need-1][0]
+            tied=[row for row in items if row[0]>=cutoff]
+            if len(tied)>need: ambiguous.append(role)
+            else: selected[role]=[row[3] for row in items[:need]]
+    return selected,ambiguous,expected
+def main():
+    roles,ambiguous,expected=select_roles()
     counts_valid=all(len(roles[k])==v for k,v in expected.items())
     all_ids=sum(roles.values(),[])
     topology_valid=bool(all_ids and all(rs.IsObjectSolid(i) and naked_count(brep_for(i))==0 for i in all_ids))
@@ -96,20 +132,20 @@ def main():
         ready=tilt is not None and abs(tilt-target)<=PROFILE["angle_tolerance_deg"] and (target==0 or outward is True)
         prong_rows.append({"name":name_of(i),"tilt_deg":round(tilt,3) if tilt is not None else None,"outward":outward,"ready":ready})
     tilt_valid=bool(len(prong_rows)==PROFILE["prong_count"] and all(r["ready"] for r in prong_rows))
-    status=("FULL_CHECK_BLOCKED_MEMBER_COUNT" if not counts_valid else "FULL_CHECK_BLOCKED_TOPOLOGY" if not topology_valid else "FULL_CHECK_BLOCKED_MEMBER_SIZE" if not dimensions_valid else "FULL_CHECK_BLOCKED_CONTACT" if not contacts_valid else "FULL_CHECK_BLOCKED_PRONG_TILT" if not tilt_valid else "EDITABLE_ASSEMBLY_READY")
-    report={"generator":"ptr-parameterized-full-check-v1","status":status,"job_profile":PROFILE,"counts":{k:len(v) for k,v in roles.items()},"prongs":prong_rows,"contacts":contacts,"geometry_modified":False,"document_boolean_executed":False,"production_export_allowed":False,"manual_union_required":status=="EDITABLE_ASSEMBLY_READY"}
+    status=("FULL_CHECK_BLOCKED_AMBIGUOUS_SOURCE" if ambiguous else "FULL_CHECK_BLOCKED_MEMBER_COUNT" if not counts_valid else "FULL_CHECK_BLOCKED_TOPOLOGY" if not topology_valid else "FULL_CHECK_BLOCKED_MEMBER_SIZE" if not dimensions_valid else "FULL_CHECK_BLOCKED_CONTACT" if not contacts_valid else "FULL_CHECK_BLOCKED_PRONG_TILT" if not tilt_valid else "EDITABLE_ASSEMBLY_READY")
+    report={"generator":"ptr-parameterized-full-check-v1","status":status,"job_profile":PROFILE,"source_options":SOURCE_OPTIONS,"ambiguous_roles":ambiguous,"counts":{k:len(v) for k,v in roles.items()},"prongs":prong_rows,"contacts":contacts,"geometry_modified":False,"document_boolean_executed":False,"production_export_allowed":False,"manual_union_required":status=="EDITABLE_ASSEMBLY_READY"}
     folder=os.path.dirname(REPORT_PATH)
     if folder and not os.path.isdir(folder): os.makedirs(folder)
     with io.open(REPORT_PATH,"w",encoding="utf-8") as h: json.dump(report,h,ensure_ascii=False,indent=2)
     print("PARAMETERIZED CAD FULL CHECK | status="+status)
-    print("ASSEMBLY MODE | EDITABLE_NON_UNION")
+    print("ASSEMBLY MODE | EDITABLE_NON_UNION")\n    print("SOURCE OPTIONS | "+str(SOURCE_OPTIONS))\n    if ambiguous: print("AMBIGUOUS SOURCE ROLES | "+",".join(ambiguous))
     print("COUNTS | "+str(report["counts"]))
     for r in prong_rows: print("PRONG | {0} | tilt_deg={1} | outward={2} | ready={3}".format(r["name"],r["tilt_deg"],r["outward"],r["ready"]))
     for r in contacts: print("CONTACT | {0} <-> {1} | ready={2}".format(r["a"],r["b"],r["contact"]))
     print("SOURCE GEOMETRY MODIFIED | NO")
     print("DOCUMENT BOOLEAN | NOT EXECUTED")
     print("PRODUCTION EXPORT | BLOCKED")
-    print("MANUAL UNION REQUIRED | "+str(status=="EDITABLE_ASSEMBLY_READY"))
+    print("MANUAL UNION REQUIRED | TRUE")
     print("FULL CHECK REPORT | "+REPORT_PATH)
 if __name__=="__main__": main()
 '''
@@ -119,11 +155,11 @@ def build_cad_full_check_script(report_path, profile):
     return _TEMPLATE.replace("__PROFILE__", json.dumps(profile, ensure_ascii=False)).replace("__REPORT_PATH__", json.dumps(str(report_path).replace("\\", "/")))
 
 
-def prepare_cad_full_check(memory_root, profile, now=None):
+def prepare_cad_full_check(memory_root, profile, now=None, source_options=None):
     stamp=(now or datetime.now()).strftime("%Y-%m-%d_%H-%M-%S-%f")
     script_path=memory_root/"Rhino_Scripts"/f"{stamp}_parameterized_cad_full_check.py"
     report_path=memory_root/"Parameterized_Full_Checks"/f"{stamp}_parameterized_cad_full_check.json"
-    return script_path,report_path,build_cad_full_check_script(report_path,profile)
+    return script_path,report_path,build_cad_full_check_script(report_path,profile,source_options)
 
 
 def save_cad_full_check(path, script):
