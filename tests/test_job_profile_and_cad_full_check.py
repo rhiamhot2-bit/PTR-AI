@@ -31,6 +31,13 @@ class JobProfileAndFullCheckTests(unittest.TestCase):
         self.assertIn("SOURCE OPTIONS",script)
         self.assertIn("FULL_CHECK_BLOCKED_AMBIGUOUS_SOURCE",script)
         self.assertIn("SOURCE GEOMETRY MODIFIED | NO",script)
+        self.assertIn('"member_sizes":member_rows',script)
+        self.assertIn("MEMBER SIZE |",script)
+        self.assertIn("measured_mm",script)
+        self.assertIn("required_mm",script)
+        self.assertIn("deficit_mm",script)
+        self.assertIn("bounding_box_minimum_extent",script)
+        self.assertIn("BLOCKER |",script)
         for forbidden in ("rs.Delete","rs.Move","rs.Rotate","AddBrep","CreateBooleanUnion"):
             self.assertNotIn(forbidden,script)
     def test_status(self):
